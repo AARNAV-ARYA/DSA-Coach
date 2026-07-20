@@ -6,7 +6,7 @@ It is deliberately not another solved-problem tracker. Its job is to turn solvin
 
 ## Current status
 
-Phase 1 project foundation is complete. It includes a React + TypeScript + Vite build, Tailwind CSS, MV3 manifest, strict quality gates, absolute imports, shared UI/platform boundaries, theme state, and a lightweight extension-storage abstraction. Product business logic has deliberately not started.
+Phase 1 project foundation is complete. The first scoped Phase 2 browser integration is also available: after Chrome grants the extension’s narrowly scoped LeetCode access at installation, DSA Coach detects supported problem pages and shows a small in-page detail control. It reads only the problem ID, title, difficulty, and canonical URL; it does not save data or implement reviews yet.
 
 ## Local development
 

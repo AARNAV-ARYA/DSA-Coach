@@ -1,4 +1,5 @@
 import { ThemeToggle } from '@/features/theme/ui/theme-toggle';
+import { LeetCodeDetectionToggle } from '@/features/leetcode/ui/leetcode-detection-toggle';
 import { Brand } from '@/shared/ui/brand';
 
 type Surface = 'dashboard' | 'popup' | 'sidepanel';
@@ -40,6 +41,7 @@ export function AppShell({ surface }: { surface: Surface }): React.ReactNode {
         <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
           {copy.description}
         </p>
+        {isPopup && <LeetCodeDetectionToggle />}
       </section>
       <footer className="mt-16 border-t border-border pt-4 text-xs text-muted-foreground">
         Foundation build · v0.1.0

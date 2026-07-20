@@ -5,7 +5,8 @@
   "version": "0.1.0",
   "minimum_chrome_version": "114",
   "action": {
-    "default_title": "Open DSA Coach"
+    "default_title": "Open DSA Coach",
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background/service-worker.js",
@@ -15,7 +16,7 @@
     "default_path": "sidepanel.html"
   },
   "permissions": ["activeTab", "alarms", "sidePanel", "storage"],
-  "optional_host_permissions": ["https://leetcode.com/*"],
+  "host_permissions": ["https://leetcode.com/*"],
   "content_scripts": [
     {
       "matches": ["https://leetcode.com/*"],
