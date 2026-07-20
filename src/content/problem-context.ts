@@ -1,2 +1,3 @@
-// Site adapters will be introduced only with an approved, user-consented capture flow.
-export {};
+import { startLeetCodeProblemIntegration } from '@/content/leetcode/start';
+
+startLeetCodeProblemIntegration();
