@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { today, useRevisionStore } from '@/features/revision/model/revision-store';
+import {
+  revisionStorageKey,
+  today,
+  useRevisionStore,
+} from '@/features/revision/model/revision-store';
 import {
   revisionOutcomeCopy,
   revisionOutcomes,
@@ -17,6 +21,9 @@ export function RevisionSystem(): React.ReactNode {
   const problems = useRevisionStore((state) => state.problems);
   const isHydrated = useRevisionStore((state) => state.isHydrated);
   const hydrate = useRevisionStore((state) => state.hydrate);
+  const snoozeProblem = useRevisionStore((state) => state.snoozeProblem);
+  const completeProblem = useRevisionStore((state) => state.completeProblem);
+  const skipProblem = useRevisionStore((state) => state.skipProblem);
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState<DifficultyFilter>('all');
   const [outcome, setOutcome] = useState<'all' | RevisionOutcome>('all');
@@ -26,6 +33,19 @@ export function RevisionSystem(): React.ReactNode {
 
   useEffect(() => {
     void hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (typeof chrome === 'undefined' || chrome.storage?.onChanged === undefined) return;
+
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ): void => {
+      if (areaName === 'local' && changes[revisionStorageKey] !== undefined) void hydrate();
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, [hydrate]);
 
   const currentDate = today();
@@ -297,7 +317,13 @@ export function RevisionSystem(): React.ReactNode {
                   {todaysReviews.length === 0 ? (
                     <EmptyState message="Nothing is due today. Your review queue is clear." />
                   ) : (
-                    <ProblemList problems={todaysReviews} />
+                    <ProblemList
+                      onComplete={(id) => void completeProblem(id)}
+                      onSkip={(id) => void skipProblem(id)}
+                      onSnooze={(id) => void snoozeProblem(id)}
+                      problems={todaysReviews}
+                      showReviewActions
+                    />
                   )}
                 </SectionCard>
                 <SectionCard
@@ -465,11 +491,19 @@ function FilterSelect({
 
 function ProblemList({
   compact = false,
+  onComplete,
+  onSkip,
+  onSnooze,
   problems,
+  showReviewActions = false,
   showAddedDate = false,
 }: {
   compact?: boolean;
+  onComplete?: (id: string) => void;
+  onSkip?: (id: string) => void;
+  onSnooze?: (id: string) => void;
   problems: RevisionProblem[];
+  showReviewActions?: boolean;
   showAddedDate?: boolean;
 }): React.ReactNode {
   return (
@@ -500,7 +534,7 @@ function ProblemList({
         );
 
         return (
-          <li key={problem.id}>
+          <li className="dashboard-problem-item" key={problem.id}>
             {problem.source?.url ? (
               <a
                 aria-label={`Open ${problem.title} on LeetCode`}
@@ -513,6 +547,19 @@ function ProblemList({
               </a>
             ) : (
               <div className="dashboard-problem-row">{rowContent}</div>
+            )}
+            {showReviewActions && (
+              <div className="dashboard-review-actions" aria-label={`Actions for ${problem.title}`}>
+                <button onClick={() => onSnooze?.(problem.id)} type="button">
+                  Snooze
+                </button>
+                <button onClick={() => onSkip?.(problem.id)} type="button">
+                  Skip
+                </button>
+                <button onClick={() => onComplete?.(problem.id)} type="button">
+                  Completed
+                </button>
+              </div>
             )}
           </li>
         );

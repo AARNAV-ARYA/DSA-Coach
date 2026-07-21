@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   findProblemBySource,
+  revisionStorageKey,
   reviewDateFromToday,
   today,
   useRevisionStore,
@@ -56,6 +57,19 @@ export function QuickCapture({
     void getActiveProblemContext()
       .then(setContext)
       .finally(() => setIsLoadingContext(false));
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (typeof chrome === 'undefined' || chrome.storage?.onChanged === undefined) return;
+
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ): void => {
+      if (areaName === 'local' && changes[revisionStorageKey] !== undefined) void hydrate();
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, [hydrate]);
 
   const source = useMemo(() => (context === null ? null : toRevisionSource(context)), [context]);

@@ -7,7 +7,7 @@ import {
   type RevisionProblemSource,
 } from '@/features/revision/model/revision-types';
 
-const revisionStorageKey = 'dsa-coach.revision-problems.v1';
+export const revisionStorageKey = 'dsa-coach.revision-problems.v1';
 
 interface RevisionState {
   problems: RevisionProblem[];
@@ -16,6 +16,9 @@ interface RevisionState {
   addProblem: (draft: RevisionProblemDraft) => Promise<RevisionProblem | null>;
   updateProblem: (id: string, draft: RevisionProblemDraft) => Promise<void>;
   reviewProblemToday: (id: string) => Promise<void>;
+  snoozeProblem: (id: string) => Promise<void>;
+  completeProblem: (id: string) => Promise<void>;
+  skipProblem: (id: string) => Promise<void>;
   removeProblem: (id: string) => Promise<void>;
 }
 
@@ -82,12 +85,44 @@ export const useRevisionStore = create<RevisionState>((set, get) => ({
     await extensionStorage.set(revisionStorageKey, problems);
     set({ problems });
   },
+  snoozeProblem: async (id) => {
+    await rescheduleProblem(id, 1, set, get);
+  },
+  completeProblem: async (id) => {
+    const problems = sortByReviewDate(
+      get().problems.map((problem) =>
+        problem.id === id
+          ? { ...problem, outcome: 'mastered' as const, reviewDate: reviewDateFromToday(30) }
+          : problem,
+      ),
+    );
+    await extensionStorage.set(revisionStorageKey, problems);
+    set({ problems });
+  },
+  skipProblem: async (id) => {
+    await rescheduleProblem(id, 7, set, get);
+  },
   removeProblem: async (id) => {
     const problems = get().problems.filter((problem) => problem.id !== id);
     await extensionStorage.set(revisionStorageKey, problems);
     set({ problems });
   },
 }));
+
+async function rescheduleProblem(
+  id: string,
+  days: number,
+  set: (partial: Partial<RevisionState>) => void,
+  get: () => RevisionState,
+): Promise<void> {
+  const problems = sortByReviewDate(
+    get().problems.map((problem) =>
+      problem.id === id ? { ...problem, reviewDate: reviewDateFromToday(days) } : problem,
+    ),
+  );
+  await extensionStorage.set(revisionStorageKey, problems);
+  set({ problems });
+}
 
 export function reviewDateFromToday(days: number): string {
   const date = new Date();
