@@ -59,19 +59,22 @@ export const useRevisionStore = create<RevisionState>((set, get) => ({
   },
   updateProblem: async (id, draft) => {
     const problems = sortByReviewDate(
-      get().problems.map((problem) =>
-        problem.id === id
-          ? {
-              ...problem,
-              title: draft.title.trim(),
-              outcome: draft.outcome,
-              reviewDate: draft.reviewDate,
-              ...(draft.note?.trim() === '' || draft.note === undefined
-                ? { note: undefined }
-                : { note: draft.note.trim() }),
-            }
-          : problem,
-      ),
+      get().problems.map((problem) => {
+        if (problem.id !== id) return problem;
+
+        const updated: RevisionProblem = {
+          ...problem,
+          title: draft.title.trim(),
+          outcome: draft.outcome,
+          reviewDate: draft.reviewDate,
+        };
+        if (draft.note?.trim() === '' || draft.note === undefined) {
+          delete updated.note;
+        } else {
+          updated.note = draft.note.trim();
+        }
+        return updated;
+      }),
     );
     await extensionStorage.set(revisionStorageKey, problems);
     set({ problems });

@@ -158,7 +158,7 @@ export function QuickCapture({
     return (
       <SidepanelWorkspace
         dueToday={dueToday}
-        existingProblem={existingProblem}
+        {...(existingProblem === undefined ? {} : { existingProblem })}
         isEditing={isEditing}
         isHydrated={isHydrated}
         isLoadingContext={isLoadingContext}
@@ -218,7 +218,7 @@ export function QuickCapture({
         <div className="mt-6 h-40 animate-pulse rounded-2xl bg-muted" />
       ) : (context === null || source === null) && !isManualCapture ? (
         <EmptyCaptureState onAddQuestion={startManualCapture} />
-      ) : existingProblem !== undefined && !isEditing ? (
+      ) : existingProblem !== undefined && source !== null && !isEditing ? (
         <AlreadyAdded
           onEdit={startEditing}
           onOpenDashboard={() => void sendExtensionMessage({ type: 'shell.open-dashboard' })}
@@ -451,7 +451,7 @@ function SidepanelWorkspace({
           <div className="sidepanel-capture-loading" />
         ) : source === null && !isManualCapture ? (
           <EmptyCaptureState onAddQuestion={onStartManualCapture} />
-        ) : existingProblem !== undefined && !isEditing ? (
+        ) : existingProblem !== undefined && source !== null && !isEditing ? (
           <AlreadyAdded
             onEdit={onEdit}
             onOpenDashboard={onOpenDashboard}

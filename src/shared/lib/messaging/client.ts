@@ -9,9 +9,13 @@ import {
 const isExtensionRuntimeAvailable = (): boolean =>
   typeof chrome !== 'undefined' && typeof chrome.runtime?.sendMessage === 'function';
 
-export async function sendExtensionMessage(
-  message: Omit<ExtensionMessage, 'version'>,
-): Promise<void> {
+type ExtensionMessageWithoutVersion = ExtensionMessage extends infer Message
+  ? Message extends ExtensionMessage
+    ? Omit<Message, 'version'>
+    : never
+  : never;
+
+export async function sendExtensionMessage(message: ExtensionMessageWithoutVersion): Promise<void> {
   if (!isExtensionRuntimeAvailable()) return;
 
   await chrome.runtime.sendMessage({ ...message, version: MESSAGE_VERSION });

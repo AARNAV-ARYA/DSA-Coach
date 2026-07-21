@@ -714,6 +714,7 @@ interface CalendarDay {
 
 function getCalendarDays(referenceDate: string, problems: RevisionProblem[]): CalendarDay[] {
   const [year, month] = referenceDate.split('-').map(Number);
+  if (year === undefined || month === undefined) return [];
   const current = new Date(year, month - 1, 1);
   const firstWeekday = (current.getDay() + 6) % 7;
   const calendarStart = new Date(year, month - 1, 1 - firstWeekday);
