@@ -258,7 +258,7 @@ export function AiCoachWorkspace(): React.ReactNode {
             appear here.
           </div>
         ) : (
-          <InsightsEditor
+          <AiInsightsEditor
             insights={insights}
             onChange={updateInsights}
             onSave={() => void save()}
@@ -269,14 +269,16 @@ export function AiCoachWorkspace(): React.ReactNode {
   );
 }
 
-function InsightsEditor({
+export function AiInsightsEditor({
   insights,
   onChange,
   onSave,
+  saveLabel = 'Save edited draft',
 }: {
   insights: AiInsights;
   onChange: (updater: (current: AiInsights) => AiInsights) => void;
   onSave: () => void;
+  saveLabel?: string;
 }): React.ReactNode {
   return (
     <div className="space-y-5 rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
@@ -443,6 +445,330 @@ function InsightsEditor({
           />
         </EditorField>
       </div>
+      {insights.codeReview !== undefined && (
+        <div className="space-y-4 rounded-2xl border border-border bg-muted/40 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold">Your code review</p>
+            <input
+              aria-label="Solution language"
+              className="max-w-36 rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground outline-none focus:border-accent"
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  codeReview:
+                    current.codeReview === undefined
+                      ? undefined
+                      : { ...current.codeReview, language: event.target.value },
+                }))
+              }
+              value={insights.codeReview.language}
+            />
+          </div>
+          <EditorField label="Review summary">
+            <textarea
+              className={`${inputClass} min-h-24 resize-y`}
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  codeReview:
+                    current.codeReview === undefined
+                      ? undefined
+                      : { ...current.codeReview, summary: event.target.value },
+                }))
+              }
+              value={insights.codeReview.summary}
+            />
+          </EditorField>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <EditorField label="What worked">
+              <textarea
+                className={`${inputClass} min-h-24 resize-y`}
+                onChange={(event) =>
+                  onChange((current) => ({
+                    ...current,
+                    codeReview:
+                      current.codeReview === undefined
+                        ? undefined
+                        : {
+                            ...current.codeReview,
+                            strengths: linesFromText(event.target.value).slice(0, 5),
+                          },
+                  }))
+                }
+                value={insights.codeReview.strengths.join('\n')}
+              />
+            </EditorField>
+            <EditorField label="What to improve">
+              <textarea
+                className={`${inputClass} min-h-24 resize-y`}
+                onChange={(event) =>
+                  onChange((current) => ({
+                    ...current,
+                    codeReview:
+                      current.codeReview === undefined
+                        ? undefined
+                        : {
+                            ...current.codeReview,
+                            improvements: linesFromText(event.target.value).slice(0, 6),
+                          },
+                  }))
+                }
+                value={insights.codeReview.improvements.join('\n')}
+              />
+            </EditorField>
+          </div>
+          <EditorField label="Correctness or edge-case risk">
+            <textarea
+              className={`${inputClass} min-h-20 resize-y`}
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  codeReview:
+                    current.codeReview === undefined
+                      ? undefined
+                      : { ...current.codeReview, correctnessRisk: event.target.value },
+                }))
+              }
+              value={insights.codeReview.correctnessRisk}
+            />
+          </EditorField>
+        </div>
+      )}
+      {insights.solutionProgression !== undefined && (
+        <div>
+          <p className="text-sm font-semibold">Brute force to optimal</p>
+          <div className="mt-3 space-y-4">
+            {insights.solutionProgression.map((stage, index) => (
+              <div className="rounded-2xl border border-border p-4" key={stage.kind}>
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent">
+                    {formatStageKind(stage.kind)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {stage.timeComplexity} time · {stage.spaceComplexity} space
+                  </span>
+                </div>
+                <EditorField label="Approach name">
+                  <input
+                    className={inputClass}
+                    onChange={(event) =>
+                      onChange((current) =>
+                        updateSolutionStage(current, index, { title: event.target.value }),
+                      )
+                    }
+                    value={stage.title}
+                  />
+                </EditorField>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <EditorField label="Idea">
+                    <textarea
+                      className={`${inputClass} min-h-24 resize-y`}
+                      onChange={(event) =>
+                        onChange((current) =>
+                          updateSolutionStage(current, index, { idea: event.target.value }),
+                        )
+                      }
+                      value={stage.idea}
+                    />
+                  </EditorField>
+                  <EditorField label="Intuition">
+                    <textarea
+                      className={`${inputClass} min-h-24 resize-y`}
+                      onChange={(event) =>
+                        onChange((current) =>
+                          updateSolutionStage(current, index, { intuition: event.target.value }),
+                        )
+                      }
+                      value={stage.intuition}
+                    />
+                  </EditorField>
+                </div>
+                <EditorField label="Clean solution code">
+                  <textarea
+                    className={`${inputClass} mt-4 min-h-56 resize-y font-mono text-xs leading-5`}
+                    onChange={(event) =>
+                      onChange((current) =>
+                        updateSolutionStage(current, index, { code: event.target.value }),
+                      )
+                    }
+                    spellCheck={false}
+                    value={stage.code}
+                  />
+                </EditorField>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <EditorField label="Time complexity">
+                    <input
+                      className={inputClass}
+                      onChange={(event) =>
+                        onChange((current) =>
+                          updateSolutionStage(current, index, {
+                            timeComplexity: event.target.value,
+                          }),
+                        )
+                      }
+                      value={stage.timeComplexity}
+                    />
+                  </EditorField>
+                  <EditorField label="Space complexity">
+                    <input
+                      className={inputClass}
+                      onChange={(event) =>
+                        onChange((current) =>
+                          updateSolutionStage(current, index, {
+                            spaceComplexity: event.target.value,
+                          }),
+                        )
+                      }
+                      value={stage.spaceComplexity}
+                    />
+                  </EditorField>
+                </div>
+                <EditorField label="Trade-off">
+                  <textarea
+                    className={`${inputClass} mt-4 min-h-20 resize-y`}
+                    onChange={(event) =>
+                      onChange((current) =>
+                        updateSolutionStage(current, index, { tradeoff: event.target.value }),
+                      )
+                    }
+                    value={stage.tradeoff}
+                  />
+                </EditorField>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {insights.realLifeAnalogy !== undefined && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <EditorField label="Real-life analogy">
+            <input
+              className={inputClass}
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  realLifeAnalogy:
+                    current.realLifeAnalogy === undefined
+                      ? undefined
+                      : { ...current.realLifeAnalogy, title: event.target.value },
+                }))
+              }
+              value={insights.realLifeAnalogy.title}
+            />
+            <textarea
+              className={`${inputClass} mt-2 min-h-28 resize-y`}
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  realLifeAnalogy:
+                    current.realLifeAnalogy === undefined
+                      ? undefined
+                      : { ...current.realLifeAnalogy, explanation: event.target.value },
+                }))
+              }
+              value={insights.realLifeAnalogy.explanation}
+            />
+          </EditorField>
+          {insights.workedExample !== undefined && (
+            <EditorField label="Worked example">
+              <input
+                aria-label="Worked example input"
+                className={inputClass}
+                onChange={(event) =>
+                  onChange((current) => ({
+                    ...current,
+                    workedExample:
+                      current.workedExample === undefined
+                        ? undefined
+                        : { ...current.workedExample, input: event.target.value },
+                  }))
+                }
+                value={insights.workedExample.input}
+              />
+              <textarea
+                aria-label="Worked example steps"
+                className={`${inputClass} mt-2 min-h-28 resize-y`}
+                onChange={(event) =>
+                  onChange((current) => ({
+                    ...current,
+                    workedExample:
+                      current.workedExample === undefined
+                        ? undefined
+                        : { ...current.workedExample, steps: linesFromText(event.target.value) },
+                  }))
+                }
+                value={insights.workedExample.steps.join('\n')}
+              />
+              <input
+                aria-label="Worked example output"
+                className={`${inputClass} mt-2`}
+                onChange={(event) =>
+                  onChange((current) => ({
+                    ...current,
+                    workedExample:
+                      current.workedExample === undefined
+                        ? undefined
+                        : { ...current.workedExample, output: event.target.value },
+                  }))
+                }
+                value={insights.workedExample.output}
+              />
+            </EditorField>
+          )}
+        </div>
+      )}
+      {insights.visualFlow !== undefined && (
+        <div className="rounded-2xl border border-border p-4">
+          <EditorField label="Visual flow title">
+            <input
+              className={inputClass}
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  visualFlow:
+                    current.visualFlow === undefined
+                      ? undefined
+                      : { ...current.visualFlow, title: event.target.value },
+                }))
+              }
+              value={insights.visualFlow.title}
+            />
+          </EditorField>
+          <div className="mt-4 flex flex-col gap-2" aria-label={insights.visualFlow.title}>
+            {insights.visualFlow.steps.map((step, index) => (
+              <div key={`${step.label}-${String(index)}`}>
+                <div className="rounded-xl border border-border bg-background p-3">
+                  <input
+                    aria-label={`Visual step ${String(index + 1)} label`}
+                    className={inputClass}
+                    onChange={(event) =>
+                      onChange((current) =>
+                        updateVisualStep(current, index, 'label', event.target.value),
+                      )
+                    }
+                    value={step.label}
+                  />
+                  <textarea
+                    aria-label={`Visual step ${String(index + 1)} detail`}
+                    className={`${inputClass} mt-2 min-h-16 resize-y`}
+                    onChange={(event) =>
+                      onChange((current) =>
+                        updateVisualStep(current, index, 'detail', event.target.value),
+                      )
+                    }
+                    value={step.detail}
+                  />
+                </div>
+                {index < (insights.visualFlow?.steps.length ?? 0) - 1 && (
+                  <div className="py-1 text-center text-lg text-accent" aria-hidden="true">
+                    ↓
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div>
         <p className="text-sm font-semibold">Related LeetCode problems</p>
         <div className="mt-3 space-y-3">
@@ -506,7 +832,7 @@ function InsightsEditor({
           {insights.metadata.model} · {insights.metadata.promptVersion}
         </p>
         <Button onClick={onSave} variant="secondary">
-          Save edited draft
+          {saveLabel}
         </Button>
       </div>
     </div>
@@ -640,6 +966,48 @@ function sourceFromRequest(request: AiGenerationRequest): SourceForm {
     shareCode: scopes.has('code'),
     sharePerformance: scopes.has('performance'),
   };
+}
+
+type SolutionStage = NonNullable<AiInsights['solutionProgression']>[number];
+
+function updateSolutionStage(
+  insights: AiInsights,
+  index: number,
+  change: Partial<SolutionStage>,
+): AiInsights {
+  if (insights.solutionProgression === undefined) return insights;
+  return {
+    ...insights,
+    solutionProgression: insights.solutionProgression.map((stage, stageIndex) =>
+      stageIndex === index ? { ...stage, ...change } : stage,
+    ),
+  };
+}
+
+function updateVisualStep(
+  insights: AiInsights,
+  index: number,
+  field: 'label' | 'detail',
+  value: string,
+): AiInsights {
+  if (insights.visualFlow === undefined) return insights;
+  return {
+    ...insights,
+    visualFlow: {
+      ...insights.visualFlow,
+      steps: insights.visualFlow.steps.map((step, stepIndex) =>
+        stepIndex === index ? { ...step, [field]: value } : step,
+      ),
+    },
+  };
+}
+
+function formatStageKind(kind: SolutionStage['kind']): string {
+  return {
+    'brute-force': 'Brute force',
+    improved: 'Improved',
+    optimal: 'Optimal',
+  }[kind];
 }
 
 function linesFromText(value: string): string[] {

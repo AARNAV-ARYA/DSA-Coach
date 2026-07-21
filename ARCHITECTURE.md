@@ -197,6 +197,10 @@ The browser never receives `GROQ_API_KEY`. During local development, a modular A
 
 The dashboard shows each optional context category separately. Only checked categories are serialized into the request, and the server rejects optional fields that lack the matching consent scope. Generated content is an editable local draft; regenerating does not silently overwrite unsaved edits. “Why you got stuck” is always a hypothesis with confidence and evidence, never a diagnosis or fixed judgment about the learner.
 
+The LeetCode content script does not continuously collect editor contents. After the learner selects **Analyze my current solution with AI** and adds a question, the trusted capture UI requests the active editor value through the service-worker broker. Failure to read code or reach AI never blocks problem capture. The resulting per-problem analysis record remains in local extension storage and is joined to the learner’s revision problem by ID; records are ordered by the problem’s immutable `createdAt` value.
+
+Prompt version `problem-analysis-v2` adds a bounded review of voluntarily shared code, two or three ordered solution stages from brute force to optimal, fresh educational implementations, complexity, a real-life analogy, a worked example, and a structured visual flow. The visual is data-driven UI rather than model-generated executable markup. All learner-facing generated fields and code are editable before local save.
+
 **Provider portability rule:** domain contracts, consent filtering, editable drafts, and related-problem validation cannot depend on Groq response objects. A later provider change implements `AiProvider` and introduces a new prompt/model version without changing learner-owned drafts.
 
 ## 11. Scalability and reliability

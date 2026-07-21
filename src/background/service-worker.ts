@@ -1,6 +1,9 @@
 import {
   isExtensionMessage,
+  isActiveSolutionCodeResponse,
+  MESSAGE_VERSION,
   type ActiveProblemContextResponse,
+  type ActiveSolutionCodeResponse,
   type ProblemContext,
 } from '@/shared/lib/messaging/contracts';
 
@@ -86,6 +89,13 @@ chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) =>
     return true;
   }
 
+  if (message.type === 'capture.active-solution.request') {
+    void getActiveSolutionCode().then((code) =>
+      sendResponse({ code } satisfies ActiveSolutionCodeResponse),
+    );
+    return true;
+  }
+
   if (message.type === 'review.added') {
     void notifyReviewAdded(message.title, message.reviewDate);
     return;
@@ -111,6 +121,23 @@ async function getActiveContext(): Promise<ProblemContext | null> {
   const stored = await chrome.storage.session.get(activeContextsStorageKey);
   const contexts = stored[activeContextsStorageKey] as ContextByTab | undefined;
   return contexts?.[String(activeTab.id)] ?? null;
+}
+
+async function getActiveSolutionCode(): Promise<string | null> {
+  const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (activeTab?.id === undefined || activeTab.url?.startsWith('https://leetcode.com/') !== true) {
+    return null;
+  }
+
+  try {
+    const response: unknown = await chrome.tabs.sendMessage(activeTab.id, {
+      version: MESSAGE_VERSION,
+      type: 'content.solution-code.request',
+    });
+    return isActiveSolutionCodeResponse(response) ? response.code : null;
+  } catch {
+    return null;
+  }
 }
 
 async function configureReviewAlarm(): Promise<void> {

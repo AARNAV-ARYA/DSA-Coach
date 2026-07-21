@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const AI_PROMPT_VERSION = 'problem-insights-v1' as const;
+export const AI_PROMPT_VERSION = 'problem-analysis-v2' as const;
+const aiPromptVersionSchema = z.enum(['problem-insights-v1', AI_PROMPT_VERSION]);
 
 export const aiConsentScopeSchema = z.enum([
   'problem_metadata',
@@ -69,6 +70,50 @@ export const aiGenerationRequestSchema = z
 
 export type AiGenerationRequest = z.infer<typeof aiGenerationRequestSchema>;
 
+export const codeReviewSchema = z.object({
+  provided: z.boolean(),
+  language: z.string().trim().min(1).max(80),
+  summary: z.string().trim().min(1).max(800),
+  strengths: z.array(z.string().trim().min(1).max(240)).max(5),
+  improvements: z.array(z.string().trim().min(1).max(300)).max(6),
+  correctnessRisk: z.string().trim().min(1).max(500),
+});
+
+export const solutionStageSchema = z.object({
+  kind: z.enum(['brute-force', 'improved', 'optimal']),
+  title: z.string().trim().min(1).max(100),
+  idea: z.string().trim().min(1).max(800),
+  intuition: z.string().trim().min(1).max(500),
+  code: z.string().trim().min(1).max(8_000),
+  timeComplexity: z.string().trim().min(1).max(80),
+  spaceComplexity: z.string().trim().min(1).max(80),
+  tradeoff: z.string().trim().min(1).max(400),
+});
+
+export const realLifeAnalogySchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  explanation: z.string().trim().min(1).max(900),
+});
+
+export const workedExampleSchema = z.object({
+  input: z.string().trim().min(1).max(500),
+  steps: z.array(z.string().trim().min(1).max(400)).min(1).max(8),
+  output: z.string().trim().min(1).max(500),
+});
+
+export const visualFlowSchema = z.object({
+  title: z.string().trim().min(1).max(140),
+  steps: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(100),
+        detail: z.string().trim().min(1).max(300),
+      }),
+    )
+    .min(2)
+    .max(8),
+});
+
 export const aiInsightsSchema = z.object({
   conciseNotes: z.array(z.string().trim().min(1).max(240)).min(1).max(5),
   algorithm: z.object({
@@ -99,9 +144,14 @@ export const aiInsightsSchema = z.object({
     timeComplexity: z.string().trim().min(1).max(80),
     spaceComplexity: z.string().trim().min(1).max(80),
   }),
+  codeReview: codeReviewSchema.optional(),
+  solutionProgression: z.array(solutionStageSchema).min(2).max(3).optional(),
+  realLifeAnalogy: realLifeAnalogySchema.optional(),
+  workedExample: workedExampleSchema.optional(),
+  visualFlow: visualFlowSchema.optional(),
   metadata: z.object({
     model: z.string().trim().min(1).max(120),
-    promptVersion: z.literal(AI_PROMPT_VERSION),
+    promptVersion: aiPromptVersionSchema,
     generatedAt: z.string().datetime(),
   }),
 });

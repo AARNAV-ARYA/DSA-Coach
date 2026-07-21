@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { AiCoachWorkspace } from '@/features/ai/ui/ai-coach-workspace';
+import { ProblemAnalysisWorkspace } from '@/features/ai/ui/problem-analysis-workspace';
 import {
   revisionStorageKey,
   reviewDateFromToday,
@@ -34,6 +34,7 @@ export function RevisionSystem(): React.ReactNode {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [activeView, setActiveView] = useState<'overview' | 'analysis'>('overview');
 
   useEffect(() => {
     void hydrate();
@@ -135,22 +136,48 @@ export function RevisionSystem(): React.ReactNode {
             </div>
           </div>
           <nav className="dashboard-sidebar-nav">
-            <a className="dashboard-nav-link dashboard-nav-link-active" href="#overview">
+            <button
+              className={cn(
+                'dashboard-nav-link',
+                activeView === 'overview' && 'dashboard-nav-link-active',
+              )}
+              onClick={() => setActiveView('overview')}
+              type="button"
+            >
               <span aria-hidden="true">⌂</span> Overview
-            </a>
-            <a className="dashboard-nav-link" href="#today">
+            </button>
+            <a
+              className="dashboard-nav-link"
+              href="#today"
+              onClick={() => setActiveView('overview')}
+            >
               <span aria-hidden="true">◷</span> Reviews
               {dueToday > 0 && <b>{dueToday}</b>}
             </a>
-            <a className="dashboard-nav-link" href="#analytics">
+            <a
+              className="dashboard-nav-link"
+              href="#analytics"
+              onClick={() => setActiveView('overview')}
+            >
               <span aria-hidden="true">◒</span> Analytics
             </a>
-            <a className="dashboard-nav-link" href="#calendar">
+            <a
+              className="dashboard-nav-link"
+              href="#calendar"
+              onClick={() => setActiveView('overview')}
+            >
               <span aria-hidden="true">▦</span> Calendar
             </a>
-            <a className="dashboard-nav-link" href="#ai-coach">
-              <span aria-hidden="true">✧</span> AI Coach
-            </a>
+            <button
+              className={cn(
+                'dashboard-nav-link',
+                activeView === 'analysis' && 'dashboard-nav-link-active',
+              )}
+              onClick={() => setActiveView('analysis')}
+              type="button"
+            >
+              <span aria-hidden="true">✧</span> Analysis
+            </button>
           </nav>
           <div className="dashboard-sidebar-note">
             <span className="dashboard-note-spark" aria-hidden="true">
@@ -168,7 +195,7 @@ export function RevisionSystem(): React.ReactNode {
             <div>
               <p className="dashboard-kicker">{formatTodayLabel(currentDate)}</p>
               <h1 className="mt-1 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
-                Good morning.
+                {activeView === 'analysis' ? 'Your analysis.' : 'Good morning.'}
               </h1>
             </div>
             <div className="dashboard-topbar-actions">
@@ -182,263 +209,265 @@ export function RevisionSystem(): React.ReactNode {
             </div>
           </header>
 
-          <section
-            className="dashboard-hero"
-            id="overview"
-            onPointerLeave={() => setTilt({ x: 0, y: 0 })}
-            onPointerMove={updateTilt}
-          >
-            <div className="dashboard-hero-copy">
-              <p className="dashboard-kicker dashboard-hero-kicker">Your learning space</p>
-              <h2 className="mt-3 max-w-xl text-4xl font-semibold tracking-[-0.06em] sm:text-6xl">
-                Make progress feel visible.
-              </h2>
-              <p className="mt-4 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
-                A soft, focused view of what needs your attention, what is coming next, and how your
-                practice is taking shape.
-              </p>
-              <button
-                className="dashboard-primary-button mt-6"
-                onClick={() =>
-                  document.getElementById('today')?.scrollIntoView({ behavior: 'smooth' })
-                }
-                type="button"
-              >
-                Open today&apos;s reviews <span aria-hidden="true">↗</span>
-              </button>
-            </div>
-            <div className="dashboard-hero-cosmos" aria-hidden="true">
-              <div className="dashboard-hero-orbit dashboard-hero-orbit-one" />
-              <div className="dashboard-hero-orbit dashboard-hero-orbit-two" />
-              <img
-                alt=""
-                className="dashboard-hero-asset"
-                height="1024"
-                src="/assets/dashboard-retro-computer.png"
-                width="1536"
-              />
-              <div className="dashboard-hero-orb">
-                <span>DSA</span>
-              </div>
-              <div className="dashboard-hero-satellite dashboard-hero-satellite-one" />
-              <div className="dashboard-hero-satellite dashboard-hero-satellite-two" />
-              <div className="dashboard-hero-starfield" />
-            </div>
-            <div className="dashboard-hero-float dashboard-hero-float-one" aria-hidden="true">
-              <span>Focus</span>
-              <strong>{dueToday === 0 ? 'Clear' : `${dueToday} due`}</strong>
-            </div>
-            <div className="dashboard-hero-float dashboard-hero-float-two" aria-hidden="true">
-              <span>Momentum</span>
-              <strong>{mastered > 0 ? `${mastered} mastered` : 'Begin today'}</strong>
-            </div>
-          </section>
+          {activeView === 'analysis' && <ProblemAnalysisWorkspace problems={problems} />}
 
-          <section className="dashboard-stat-grid" aria-label="Learning snapshot">
-            <DashboardStat
-              eyebrow="Due today"
-              value={dueToday}
-              detail="Keep the queue light"
-              tone="violet"
-            />
-            <DashboardStat
-              eyebrow="In your library"
-              value={problems.length}
-              detail="Problems captured"
-              tone="cyan"
-            />
-            <DashboardStat
-              eyebrow="Scheduled ahead"
-              value={scheduled}
-              detail="Future review dates"
-              tone="amber"
-            />
-            <DashboardStat
-              eyebrow="Mastered"
-              value={mastered}
-              detail="Confidence logged"
-              tone="coral"
-            />
-          </section>
-
-          <section
-            aria-label="Search and filters"
-            className="dashboard-glass dashboard-toolbar"
-            id="reviews"
-          >
-            <label className="dashboard-search-field">
-              <span className="dashboard-search-icon" aria-hidden="true">
-                ⌕
-              </span>
-              <span className="sr-only">Search problems</span>
-              <input
-                className="dashboard-input"
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search your problems"
-                type="search"
-                value={search}
-              />
-            </label>
-            <div className="dashboard-filter-row">
-              <FilterSelect
-                label="When"
-                onChange={(value) => setDateFilter(value as DateFilter)}
-                value={dateFilter}
-              >
-                <option value="all">All dates</option>
-                <option value="today">Due today</option>
-                <option value="upcoming">Upcoming</option>
-              </FilterSelect>
-              <FilterSelect
-                label="Difficulty"
-                onChange={(value) => setDifficulty(value as DifficultyFilter)}
-                value={difficulty}
-              >
-                <option value="all">All difficulty</option>
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-                <option value="Unclassified">Unclassified</option>
-              </FilterSelect>
-              <FilterSelect
-                label="Understanding"
-                onChange={(value) => setOutcome(value as 'all' | RevisionOutcome)}
-                value={outcome}
-              >
-                <option value="all">All outcomes</option>
-                {revisionOutcomes.map((item) => (
-                  <option key={item} value={item}>
-                    {revisionOutcomeCopy[item].label}
-                  </option>
-                ))}
-              </FilterSelect>
-              {selectedDate !== null && (
+          <div hidden={activeView === 'analysis'}>
+            <section
+              className="dashboard-hero"
+              id="overview"
+              onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+              onPointerMove={updateTilt}
+            >
+              <div className="dashboard-hero-copy">
+                <p className="dashboard-kicker dashboard-hero-kicker">Your learning space</p>
+                <h2 className="mt-3 max-w-xl text-4xl font-semibold tracking-[-0.06em] sm:text-6xl">
+                  Make progress feel visible.
+                </h2>
+                <p className="mt-4 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
+                  A soft, focused view of what needs your attention, what is coming next, and how
+                  your practice is taking shape.
+                </p>
                 <button
-                  className="dashboard-filter-button"
-                  onClick={() => setSelectedDate(null)}
+                  className="dashboard-primary-button mt-6"
+                  onClick={() =>
+                    document.getElementById('today')?.scrollIntoView({ behavior: 'smooth' })
+                  }
                   type="button"
                 >
-                  Clear day
+                  Open today&apos;s reviews <span aria-hidden="true">↗</span>
                 </button>
-              )}
-            </div>
-          </section>
+              </div>
+              <div className="dashboard-hero-cosmos" aria-hidden="true">
+                <div className="dashboard-hero-orbit dashboard-hero-orbit-one" />
+                <div className="dashboard-hero-orbit dashboard-hero-orbit-two" />
+                <img
+                  alt=""
+                  className="dashboard-hero-asset"
+                  height="1024"
+                  src="/assets/dashboard-retro-computer.png"
+                  width="1536"
+                />
+                <div className="dashboard-hero-orb">
+                  <span>DSA</span>
+                </div>
+                <div className="dashboard-hero-satellite dashboard-hero-satellite-one" />
+                <div className="dashboard-hero-satellite dashboard-hero-satellite-two" />
+                <div className="dashboard-hero-starfield" />
+              </div>
+              <div className="dashboard-hero-float dashboard-hero-float-one" aria-hidden="true">
+                <span>Focus</span>
+                <strong>{dueToday === 0 ? 'Clear' : `${dueToday} due`}</strong>
+              </div>
+              <div className="dashboard-hero-float dashboard-hero-float-two" aria-hidden="true">
+                <span>Momentum</span>
+                <strong>{mastered > 0 ? `${mastered} mastered` : 'Begin today'}</strong>
+              </div>
+            </section>
 
-          {!isHydrated ? (
-            <div className="mt-6 h-96 animate-pulse rounded-3xl bg-muted" />
-          ) : (
-            <>
-              <div className="dashboard-content-grid dashboard-content-grid-primary">
-                <SectionCard
-                  id="today"
-                  title="Today's reviews"
-                  subtitle="The smallest useful next step."
-                  accent="violet"
-                >
-                  {todaysReviews.length === 0 ? (
-                    <EmptyState message="Nothing is due today. Your review queue is clear." />
-                  ) : (
-                    <ProblemList
-                      onComplete={completeReview}
-                      onRemove={(id) => void removeProblem(id)}
-                      onSkip={(id) => void skipProblem(id)}
-                      onSnooze={(id) => void snoozeProblem(id)}
-                      problems={todaysReviews}
-                      showReviewActions
-                    />
-                  )}
-                </SectionCard>
-                <SectionCard
-                  id="upcoming"
-                  title="Upcoming reviews"
-                  subtitle="Keep the rhythm visible."
-                  accent="cyan"
-                >
-                  {upcomingReviews.length === 0 ? (
-                    <EmptyState message="No future reviews scheduled yet." />
-                  ) : (
-                    <ProblemList
-                      onRemove={(id) => void removeProblem(id)}
-                      problems={upcomingReviews}
-                      compact
-                    />
-                  )}
-                </SectionCard>
-              </div>
+            <section className="dashboard-stat-grid" aria-label="Learning snapshot">
+              <DashboardStat
+                eyebrow="Due today"
+                value={dueToday}
+                detail="Keep the queue light"
+                tone="violet"
+              />
+              <DashboardStat
+                eyebrow="In your library"
+                value={problems.length}
+                detail="Problems captured"
+                tone="cyan"
+              />
+              <DashboardStat
+                eyebrow="Scheduled ahead"
+                value={scheduled}
+                detail="Future review dates"
+                tone="amber"
+              />
+              <DashboardStat
+                eyebrow="Mastered"
+                value={mastered}
+                detail="Confidence logged"
+                tone="coral"
+              />
+            </section>
 
-              <div className="dashboard-content-grid" id="analytics">
-                <SectionCard
-                  title="Difficulty distribution"
-                  subtitle="Detected LeetCode difficulty across your library."
-                  accent="amber"
+            <section
+              aria-label="Search and filters"
+              className="dashboard-glass dashboard-toolbar"
+              id="reviews"
+            >
+              <label className="dashboard-search-field">
+                <span className="dashboard-search-icon" aria-hidden="true">
+                  ⌕
+                </span>
+                <span className="sr-only">Search problems</span>
+                <input
+                  className="dashboard-input"
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search your problems"
+                  type="search"
+                  value={search}
+                />
+              </label>
+              <div className="dashboard-filter-row">
+                <FilterSelect
+                  label="When"
+                  onChange={(value) => setDateFilter(value as DateFilter)}
+                  value={dateFilter}
                 >
-                  <DistributionChart items={difficultyDistribution} />
-                </SectionCard>
-                <SectionCard
-                  title="Pattern distribution"
-                  subtitle="Patterns stay evidence-based."
-                  accent="coral"
+                  <option value="all">All dates</option>
+                  <option value="today">Due today</option>
+                  <option value="upcoming">Upcoming</option>
+                </FilterSelect>
+                <FilterSelect
+                  label="Difficulty"
+                  onChange={(value) => setDifficulty(value as DifficultyFilter)}
+                  value={difficulty}
                 >
-                  <div className="dashboard-empty-visual">
-                    <span className="dashboard-empty-orb" aria-hidden="true">
-                      ◌
-                    </span>
-                    <p className="mt-4 font-medium">No pattern data yet</p>
-                    <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-                      This adapter currently captures only problem metadata. Pattern charts will
-                      appear when verified tags are available.
-                    </p>
-                  </div>
-                </SectionCard>
+                  <option value="all">All difficulty</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                  <option value="Unclassified">Unclassified</option>
+                </FilterSelect>
+                <FilterSelect
+                  label="Understanding"
+                  onChange={(value) => setOutcome(value as 'all' | RevisionOutcome)}
+                  value={outcome}
+                >
+                  <option value="all">All outcomes</option>
+                  {revisionOutcomes.map((item) => (
+                    <option key={item} value={item}>
+                      {revisionOutcomeCopy[item].label}
+                    </option>
+                  ))}
+                </FilterSelect>
+                {selectedDate !== null && (
+                  <button
+                    className="dashboard-filter-button"
+                    onClick={() => setSelectedDate(null)}
+                    type="button"
+                  >
+                    Clear day
+                  </button>
+                )}
               </div>
+            </section>
 
-              <div
-                className="dashboard-content-grid dashboard-content-grid-secondary"
-                id="calendar"
-              >
-                <SectionCard
-                  title="Revision calendar"
-                  subtitle={
-                    selectedDate === null
-                      ? 'Select a date to focus the dashboard.'
-                      : `Showing ${formatLongDate(selectedDate)}.`
-                  }
-                  accent="cyan"
+            {!isHydrated ? (
+              <div className="mt-6 h-96 animate-pulse rounded-3xl bg-muted" />
+            ) : (
+              <>
+                <div className="dashboard-content-grid dashboard-content-grid-primary">
+                  <SectionCard
+                    id="today"
+                    title="Today's reviews"
+                    subtitle="The smallest useful next step."
+                    accent="violet"
+                  >
+                    {todaysReviews.length === 0 ? (
+                      <EmptyState message="Nothing is due today. Your review queue is clear." />
+                    ) : (
+                      <ProblemList
+                        onComplete={completeReview}
+                        onRemove={(id) => void removeProblem(id)}
+                        onSkip={(id) => void skipProblem(id)}
+                        onSnooze={(id) => void snoozeProblem(id)}
+                        problems={todaysReviews}
+                        showReviewActions
+                      />
+                    )}
+                  </SectionCard>
+                  <SectionCard
+                    id="upcoming"
+                    title="Upcoming reviews"
+                    subtitle="Keep the rhythm visible."
+                    accent="cyan"
+                  >
+                    {upcomingReviews.length === 0 ? (
+                      <EmptyState message="No future reviews scheduled yet." />
+                    ) : (
+                      <ProblemList
+                        onRemove={(id) => void removeProblem(id)}
+                        problems={upcomingReviews}
+                        compact
+                      />
+                    )}
+                  </SectionCard>
+                </div>
+
+                <div className="dashboard-content-grid" id="analytics">
+                  <SectionCard
+                    title="Difficulty distribution"
+                    subtitle="Detected LeetCode difficulty across your library."
+                    accent="amber"
+                  >
+                    <DistributionChart items={difficultyDistribution} />
+                  </SectionCard>
+                  <SectionCard
+                    title="Pattern distribution"
+                    subtitle="Patterns stay evidence-based."
+                    accent="coral"
+                  >
+                    <div className="dashboard-empty-visual">
+                      <span className="dashboard-empty-orb" aria-hidden="true">
+                        ◌
+                      </span>
+                      <p className="mt-4 font-medium">No pattern data yet</p>
+                      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+                        This adapter currently captures only problem metadata. Pattern charts will
+                        appear when verified tags are available.
+                      </p>
+                    </div>
+                  </SectionCard>
+                </div>
+
+                <div
+                  className="dashboard-content-grid dashboard-content-grid-secondary"
+                  id="calendar"
                 >
-                  <CalendarGrid
-                    days={calendarDays}
-                    onSelect={setSelectedDate}
-                    selectedDate={selectedDate}
-                  />
-                </SectionCard>
-                <SectionCard
-                  title="Recently added"
-                  subtitle="Your latest commitments."
-                  accent="violet"
-                >
-                  {recentProblems.length === 0 ? (
-                    <EmptyState message="Captured problems will appear here." />
-                  ) : (
-                    <ProblemList
-                      onRemove={(id) => void removeProblem(id)}
-                      problems={recentProblems}
-                      compact
-                      showAddedDate
+                  <SectionCard
+                    title="Revision calendar"
+                    subtitle={
+                      selectedDate === null
+                        ? 'Select a date to focus the dashboard.'
+                        : `Showing ${formatLongDate(selectedDate)}.`
+                    }
+                    accent="cyan"
+                  >
+                    <CalendarGrid
+                      days={calendarDays}
+                      onSelect={setSelectedDate}
+                      selectedDate={selectedDate}
                     />
-                  )}
-                </SectionCard>
-              </div>
-              <div id="ai-coach">
-                <AiCoachWorkspace />
-              </div>
-            </>
-          )}
+                  </SectionCard>
+                  <SectionCard
+                    title="Recently added"
+                    subtitle="Your latest commitments."
+                    accent="violet"
+                  >
+                    {recentProblems.length === 0 ? (
+                      <EmptyState message="Captured problems will appear here." />
+                    ) : (
+                      <ProblemList
+                        onRemove={(id) => void removeProblem(id)}
+                        problems={recentProblems}
+                        compact
+                        showAddedDate
+                      />
+                    )}
+                  </SectionCard>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
       <img
         alt=""
         className="dashboard-adventurer-crew"
         height="1024"
+        hidden={activeView === 'analysis'}
         src="/assets/dashboard-adventurer-crew.png"
         width="1536"
       />

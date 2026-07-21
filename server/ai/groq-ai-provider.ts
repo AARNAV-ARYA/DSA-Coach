@@ -2,6 +2,11 @@ import { z } from 'zod';
 import {
   AI_PROMPT_VERSION,
   aiInsightsSchema,
+  codeReviewSchema,
+  realLifeAnalogySchema,
+  solutionStageSchema,
+  visualFlowSchema,
+  workedExampleSchema,
   type AiGenerationRequest,
   type AiInsights,
 } from '../../src/features/ai/model/ai-contracts.js';
@@ -36,6 +41,11 @@ const generatedInsightsSchema = z.object({
     timeComplexity: z.string().trim().min(1).max(80),
     spaceComplexity: z.string().trim().min(1).max(80),
   }),
+  codeReview: codeReviewSchema,
+  solutionProgression: z.array(solutionStageSchema).min(2).max(3),
+  realLifeAnalogy: realLifeAnalogySchema,
+  workedExample: workedExampleSchema,
+  visualFlow: visualFlowSchema,
 });
 
 const groqResponseSchema = z.object({
@@ -151,6 +161,11 @@ export class GroqAiProvider implements AiProvider {
       stuckPrediction: generated.data.stuckPrediction,
       oneLineIntuition: generated.data.oneLineIntuition,
       optimalSolution: generated.data.optimalSolution,
+      codeReview: generated.data.codeReview,
+      solutionProgression: generated.data.solutionProgression,
+      realLifeAnalogy: generated.data.realLifeAnalogy,
+      workedExample: generated.data.workedExample,
+      visualFlow: generated.data.visualFlow,
       metadata: {
         model: this.model,
         promptVersion: AI_PROMPT_VERSION,
@@ -180,6 +195,11 @@ function buildResponseFormat(): Record<string, unknown> {
           'stuckPrediction',
           'oneLineIntuition',
           'optimalSolution',
+          'codeReview',
+          'solutionProgression',
+          'realLifeAnalogy',
+          'workedExample',
+          'visualFlow',
         ],
         properties: {
           conciseNotes: {
@@ -237,6 +257,95 @@ function buildResponseFormat(): Record<string, unknown> {
               summary: { type: 'string' },
               timeComplexity: { type: 'string' },
               spaceComplexity: { type: 'string' },
+            },
+          },
+          codeReview: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'provided',
+              'language',
+              'summary',
+              'strengths',
+              'improvements',
+              'correctnessRisk',
+            ],
+            properties: {
+              provided: { type: 'boolean' },
+              language: { type: 'string' },
+              summary: { type: 'string' },
+              strengths: { type: 'array', items: { type: 'string' } },
+              improvements: { type: 'array', items: { type: 'string' } },
+              correctnessRisk: { type: 'string' },
+            },
+          },
+          solutionProgression: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: [
+                'kind',
+                'title',
+                'idea',
+                'intuition',
+                'code',
+                'timeComplexity',
+                'spaceComplexity',
+                'tradeoff',
+              ],
+              properties: {
+                kind: {
+                  type: 'string',
+                  enum: ['brute-force', 'improved', 'optimal'],
+                },
+                title: { type: 'string' },
+                idea: { type: 'string' },
+                intuition: { type: 'string' },
+                code: { type: 'string' },
+                timeComplexity: { type: 'string' },
+                spaceComplexity: { type: 'string' },
+                tradeoff: { type: 'string' },
+              },
+            },
+          },
+          realLifeAnalogy: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['title', 'explanation'],
+            properties: {
+              title: { type: 'string' },
+              explanation: { type: 'string' },
+            },
+          },
+          workedExample: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['input', 'steps', 'output'],
+            properties: {
+              input: { type: 'string' },
+              steps: { type: 'array', items: { type: 'string' } },
+              output: { type: 'string' },
+            },
+          },
+          visualFlow: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['title', 'steps'],
+            properties: {
+              title: { type: 'string' },
+              steps: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['label', 'detail'],
+                  properties: {
+                    label: { type: 'string' },
+                    detail: { type: 'string' },
+                  },
+                },
+              },
             },
           },
         },

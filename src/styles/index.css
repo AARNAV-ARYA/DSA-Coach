@@ -278,6 +278,393 @@ button {
   }
 }
 
+/* Persistent AI analysis library. It inherits the dashboard's pastel glass system while keeping
+   code and long-form learning content calm and readable. */
+.analysis-page {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.analysis-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.8rem;
+  border: 1px solid #bfddeb;
+  border-radius: 1.8rem;
+  background: linear-gradient(135deg, #ffffffc9, #e6f7ffad 60%, #eeeaffc2);
+  box-shadow: 0 18px 42px #7598b51c;
+}
+
+.analysis-page-heading h2 {
+  max-width: 720px;
+  margin-top: 0.35rem;
+  color: #283356;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+
+.analysis-page-heading p:not(.dashboard-kicker) {
+  max-width: 680px;
+  margin-top: 0.75rem;
+  color: #667b96;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.analysis-privacy-pill {
+  flex: 0 0 auto;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #bfe4d7;
+  border-radius: 999px;
+  background: #ebfaf4;
+  color: #408c77;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.analysis-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.analysis-list,
+.analysis-detail,
+.analysis-empty {
+  border: 1px solid #c5ddec;
+  border-radius: 1.55rem;
+  background: #ffffffa8;
+  box-shadow: 0 18px 42px #7598b51c;
+  backdrop-filter: blur(20px) saturate(1.05);
+  -webkit-backdrop-filter: blur(20px) saturate(1.05);
+}
+
+.analysis-list {
+  position: sticky;
+  top: 1rem;
+  overflow: hidden;
+}
+
+.analysis-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.8rem;
+  border-bottom: 1px solid #d7e7f1;
+  color: #354360;
+  font-size: 0.78rem;
+}
+
+.analysis-list-heading span {
+  display: grid;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #e7e2ff;
+  color: #655cb3;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.analysis-list-items {
+  display: grid;
+  max-height: min(720px, calc(100vh - 15rem));
+  overflow-y: auto;
+  padding: 0.55rem;
+}
+
+.analysis-list-item {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.72rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  background: transparent;
+  color: #34435f;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.analysis-list-item:hover,
+.analysis-list-item-active {
+  border-color: #c8dcf0;
+  background: #edf7ff;
+  transform: translateX(2px);
+}
+
+.analysis-list-item:focus-visible {
+  outline: 2px solid #7567e8;
+  outline-offset: 1px;
+}
+
+.analysis-list-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 0.78rem;
+  background: linear-gradient(145deg, #d8c8ff, #bcebf2);
+  color: #57549a;
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+.analysis-list-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.analysis-list-copy strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-list-copy small {
+  color: #7d8ba2;
+  font-size: 0.62rem;
+}
+
+.analysis-status {
+  padding: 0.25rem 0.42rem;
+  border-radius: 999px;
+  background: #edf0f5;
+  color: #7a869a;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.analysis-status-ready {
+  background: #e1f5ec;
+  color: #438a75;
+}
+
+.analysis-status-generating {
+  background: #e6f4fb;
+  color: #3d8aa8;
+}
+
+.analysis-status-failed,
+.analysis-status-needs-code {
+  background: #fff0e5;
+  color: #ad6c39;
+}
+
+.analysis-detail {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.analysis-detail-header,
+.analysis-section-heading,
+.analysis-code-actions,
+.analysis-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.analysis-detail-header {
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid #d7e7f1;
+}
+
+.analysis-detail-header h3 {
+  margin-top: 0.35rem;
+  color: #283356;
+  font-size: clamp(1.5rem, 2.7vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.analysis-detail-header a {
+  flex: 0 0 auto;
+  color: #6259bd;
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.analysis-detail-meta {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.analysis-detail-meta span {
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+  background: #edf3f8;
+  color: #718099;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.analysis-code-card {
+  margin: 1.1rem 0;
+  padding: 1rem;
+  border: 1px solid #c9deeb;
+  border-radius: 1.3rem;
+  background: #f6fbffb8;
+}
+
+.analysis-section-heading h4 {
+  margin-top: 0.15rem;
+  color: #34425f;
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.analysis-section-heading > span {
+  color: #76908f;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.analysis-code-card > textarea {
+  width: 100%;
+  min-height: 13rem;
+  margin-top: 0.85rem;
+  resize: vertical;
+  padding: 0.9rem;
+  border: 1px solid #c8ddeb;
+  border-radius: 1rem;
+  background: #172033;
+  color: #e7edf7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  outline: none;
+}
+
+.analysis-code-card > textarea:focus {
+  border-color: #8e82e5;
+  box-shadow: 0 0 0 3px #7567e826;
+}
+
+.analysis-code-actions {
+  margin-top: 0.8rem;
+  align-items: flex-end;
+}
+
+.analysis-code-actions p {
+  max-width: 480px;
+  color: #7a899e;
+  font-size: 0.67rem;
+  line-height: 1.55;
+}
+
+.analysis-notice {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #d4dfef;
+  border-radius: 1.15rem;
+  background: linear-gradient(135deg, #f4f6ff, #eefaff);
+}
+
+.analysis-notice strong {
+  color: #404b6f;
+  font-size: 0.82rem;
+}
+
+.analysis-notice p {
+  max-width: 660px;
+  margin-top: 0.25rem;
+  color: #77859c;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.analysis-save-status {
+  margin-top: 0.8rem;
+  color: #438a75;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.analysis-empty {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  align-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.analysis-empty > span {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border-radius: 1.4rem;
+  background: linear-gradient(145deg, #d8c8ff, #bcebf2);
+  color: #6259bd;
+  font-size: 1.6rem;
+}
+
+.analysis-empty h3 {
+  margin-top: 1rem;
+  color: #34425f;
+  font-size: 1.2rem;
+}
+
+.analysis-empty p {
+  margin-top: 0.4rem;
+  color: #79889d;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 920px) {
+  .analysis-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-list {
+    position: static;
+  }
+
+  .analysis-list-items {
+    max-height: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .analysis-page-heading,
+  .analysis-detail-header,
+  .analysis-code-actions,
+  .analysis-notice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .analysis-privacy-pill {
+    align-self: flex-start;
+  }
+
+  .analysis-detail-header a,
+  .analysis-code-actions button {
+    width: 100%;
+  }
+}
+
 /* Portfolio-inspired dashboard skin: playful 3D objects, soft blue paper, and
    editorial cards. The data and interaction model above remain unchanged. */
 .dashboard-scene {
@@ -372,6 +759,14 @@ button {
 .dashboard-nav-link {
   min-height: 2.9rem;
   color: #75839e;
+}
+
+button.dashboard-nav-link {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
 }
 
 .dashboard-nav-link:hover,
@@ -2676,6 +3071,44 @@ button {
   }
 
   .dashboard-hero-float {
+    display: none;
+  }
+}
+
+/* The final skin declares the desktop grid after the foundational breakpoints. Keep its mobile
+   override last so narrow dashboards remain a single readable column. */
+@media (max-width: 900px) {
+  .dashboard-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-sidebar {
+    position: static;
+    min-height: 0;
+    padding: 0.7rem;
+  }
+
+  .dashboard-sidebar-brand {
+    padding: 0.25rem 0.4rem 0.7rem;
+  }
+
+  .dashboard-sidebar-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    overflow: visible;
+    padding-bottom: 0.1rem;
+  }
+
+  .dashboard-nav-link,
+  button.dashboard-nav-link {
+    width: 100%;
+    min-height: 2.55rem;
+    justify-content: center;
+    padding-inline: 0.45rem;
+    font-size: 0.72rem;
+  }
+
+  .dashboard-sidebar-note {
     display: none;
   }
 }

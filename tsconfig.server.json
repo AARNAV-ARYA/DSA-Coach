@@ -15,6 +15,6 @@
     "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["server/**/*.ts", "src/features/ai/model/**/*.ts"],
+  "include": ["server/**/*.ts", "src/features/ai/model/ai-contracts.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

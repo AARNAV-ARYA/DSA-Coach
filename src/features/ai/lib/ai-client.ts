@@ -16,7 +16,7 @@ export class AiClientError extends Error {
 }
 
 export async function generateAiInsights(request: AiGenerationRequest): Promise<AiInsights> {
-  await ensureApiPermission();
+  await prepareAiAccess();
 
   let response: Response;
   try {
@@ -51,7 +51,7 @@ function getApiBaseUrl(): string {
   return (configured ?? DEFAULT_AI_API_BASE_URL).replace(/\/$/, '');
 }
 
-async function ensureApiPermission(): Promise<void> {
+export async function prepareAiAccess(): Promise<void> {
   if (
     getApiBaseUrl() !== DEFAULT_AI_API_BASE_URL ||
     typeof chrome === 'undefined' ||

@@ -1,5 +1,6 @@
 import {
   isProblemContext,
+  isActiveSolutionCodeResponse,
   MESSAGE_VERSION,
   type ActiveProblemContextResponse,
   type ExtensionMessage,
@@ -30,4 +31,15 @@ export async function getActiveProblemContext(): Promise<ProblemContext | null> 
   });
 
   return isProblemContext(response?.context) ? response.context : null;
+}
+
+export async function getActiveSolutionCode(): Promise<string | null> {
+  if (!isExtensionRuntimeAvailable()) return null;
+
+  const response: unknown = await chrome.runtime.sendMessage({
+    version: MESSAGE_VERSION,
+    type: 'capture.active-solution.request',
+  });
+
+  return isActiveSolutionCodeResponse(response) ? response.code : null;
 }

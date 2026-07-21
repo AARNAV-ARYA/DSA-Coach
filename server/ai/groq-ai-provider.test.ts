@@ -42,6 +42,52 @@ const generatedOutput = {
     timeComplexity: 'O(n)',
     spaceComplexity: 'O(n)',
   },
+  codeReview: {
+    provided: false,
+    language: 'TypeScript',
+    summary: 'No learner code was shared, so this is a solution-only analysis.',
+    strengths: [],
+    improvements: [],
+    correctnessRisk: 'No submitted code was available to verify.',
+  },
+  solutionProgression: [
+    {
+      kind: 'brute-force',
+      title: 'Check every pair',
+      idea: 'Try each pair until its sum matches the target.',
+      intuition: 'Exhaust every possible partnership.',
+      code: 'function twoSum(nums: number[], target: number): number[] { return []; }',
+      timeComplexity: 'O(n²)',
+      spaceComplexity: 'O(1)',
+      tradeoff: 'Simple, but repeats work.',
+    },
+    {
+      kind: 'optimal',
+      title: 'Remember complements',
+      idea: 'Use a map to find each complement in one pass.',
+      intuition: 'Ask whether the missing partner has already appeared.',
+      code: 'function twoSum(nums: number[], target: number): number[] { return []; }',
+      timeComplexity: 'O(n)',
+      spaceComplexity: 'O(n)',
+      tradeoff: 'Uses memory to remove repeated scans.',
+    },
+  ],
+  realLifeAnalogy: {
+    title: 'Matching a receipt total',
+    explanation: 'Remember each price so the next price can find the amount still needed.',
+  },
+  workedExample: {
+    input: 'nums = [2, 7, 11, 15], target = 9',
+    steps: ['See 2 and remember its index.', 'See 7 and find the needed 2.'],
+    output: '[0, 1]',
+  },
+  visualFlow: {
+    title: 'One-pass complement lookup',
+    steps: [
+      { label: 'Read number', detail: 'Take the next value.' },
+      { label: 'Check complement', detail: 'Look for target minus value.' },
+    ],
+  },
 };
 
 describe('GroqAiProvider', () => {
@@ -75,7 +121,7 @@ describe('GroqAiProvider', () => {
       url: 'https://leetcode.com/problems/valid-anagram/',
       reason: 'Practise frequency lookup.',
     });
-    expect(result.metadata.promptVersion).toBe('problem-insights-v1');
+    expect(result.metadata.promptVersion).toBe('problem-analysis-v2');
   });
 
   it('keeps learner text inside a clearly marked data payload', () => {

@@ -8,6 +8,8 @@ It is deliberately not another solved-problem tracker. Its job is to turn solvin
 
 Phase 1 project foundation and the local revision experience are available. DSA Coach detects a LeetCode problem’s number, title, difficulty, and canonical URL, then opens a focused capture panel. Users can keep private notes, manage reviews, and receive reminders. The codebase includes a tested, versioned adaptive scheduling engine; migrating the legacy fixed-day review actions and saved records to that engine remains an explicit integration step. The dashboard also includes an opt-in AI study workspace as a local development vertical slice; its API remains loopback-only until account identity and authenticated cloud deployment exist.
 
+When adding a detected LeetCode question, the learner may explicitly opt in to a one-time read of the active code editor. The question is saved immediately even if AI is unavailable. Analysis records are stored locally per question and appear latest-first in the dashboard’s **Analysis** view, with the learner’s code review, brute-force-to-optimal progression, editable solution code, analogy, worked example, and visual flow.
+
 ## Local development
 
 ```bash

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { prepareAiAccess } from '@/features/ai/lib/ai-client';
+import { useProblemAnalysisStore } from '@/features/ai/model/problem-analysis-store';
 import {
   findProblemBySource,
   revisionStorageKey,
@@ -13,7 +15,11 @@ import {
   type RevisionProblem,
   type RevisionProblemSource,
 } from '@/features/revision/model/revision-types';
-import { getActiveProblemContext, sendExtensionMessage } from '@/shared/lib/messaging/client';
+import {
+  getActiveProblemContext,
+  getActiveSolutionCode,
+  sendExtensionMessage,
+} from '@/shared/lib/messaging/client';
 import type { ProblemContext } from '@/shared/lib/messaging/contracts';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
@@ -41,6 +47,7 @@ export function QuickCapture({
   const updateProblem = useRevisionStore((state) => state.updateProblem);
   const reviewProblemToday = useRevisionStore((state) => state.reviewProblemToday);
   const removeProblem = useRevisionStore((state) => state.removeProblem);
+  const analyzeProblem = useProblemAnalysisStore((state) => state.analyzeProblem);
   const [context, setContext] = useState<ProblemContext | null>(null);
   const [isLoadingContext, setIsLoadingContext] = useState(true);
   const [outcome, setOutcome] = useState<RevisionOutcome>('understood');
@@ -51,6 +58,8 @@ export function QuickCapture({
   const [isManualCapture, setIsManualCapture] = useState(false);
   const [manualTitle, setManualTitle] = useState('');
   const [didSave, setDidSave] = useState(false);
+  const [analyzeWithAi, setAnalyzeWithAi] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   useEffect(() => {
     void hydrate();
@@ -89,6 +98,7 @@ export function QuickCapture({
     const title = source?.title ?? manualTitle.trim();
     if (title === '') return;
     let addedNewProblem = false;
+    let savedForAnalysis: RevisionProblem | null = null;
 
     if (source !== null && existingProblem !== undefined && isEditing) {
       await updateProblem(existingProblem.id, {
@@ -109,6 +119,7 @@ export function QuickCapture({
       });
       if (savedProblem === null) return;
       addedNewProblem = true;
+      savedForAnalysis = savedProblem;
     }
 
     if (source === null) {
@@ -118,8 +129,24 @@ export function QuickCapture({
     if (addedNewProblem) {
       void sendExtensionMessage({ type: 'review.added', title, reviewDate });
     }
+    if (analyzeWithAi && savedForAnalysis?.source !== undefined) {
+      void getActiveSolutionCode().then((code) => analyzeProblem(savedForAnalysis, code));
+    }
     setDidSave(true);
     globalThis.setTimeout(() => setDidSave(false), 2_000);
+  }
+
+  function changeAiAnalysis(enabled: boolean): void {
+    setAnalyzeWithAi(enabled);
+    setAnalysisError(null);
+    if (!enabled) return;
+
+    void prepareAiAccess().catch((caught: unknown) => {
+      setAnalyzeWithAi(false);
+      setAnalysisError(
+        caught instanceof Error ? caught.message : 'Local AI access could not be enabled.',
+      );
+    });
   }
 
   function startEditing(): void {
@@ -157,6 +184,8 @@ export function QuickCapture({
   if (sidepanel) {
     return (
       <SidepanelWorkspace
+        analyzeWithAi={analyzeWithAi}
+        analysisError={analysisError}
         dueToday={dueToday}
         {...(existingProblem === undefined ? {} : { existingProblem })}
         isEditing={isEditing}
@@ -170,6 +199,7 @@ export function QuickCapture({
           setIsEditing(false);
           setIsManualCapture(false);
         }}
+        onAnalyzeWithAiChange={changeAiAnalysis}
         onEdit={startEditing}
         onNoteChange={setNote}
         onOpenDashboard={() => void sendExtensionMessage({ type: 'shell.open-dashboard' })}
@@ -229,11 +259,14 @@ export function QuickCapture({
         />
       ) : (
         <CaptureForm
+          analyzeWithAi={analyzeWithAi}
+          analysisError={analysisError}
           didSave={didSave}
           isEditing={isEditing}
           isCustomDate={isCustomDate}
           note={note}
           onCancel={() => setIsEditing(false)}
+          onAnalyzeWithAiChange={changeAiAnalysis}
           onCustomDateChange={setIsCustomDate}
           onNoteChange={setNote}
           onOutcomeChange={setOutcome}
@@ -251,6 +284,8 @@ export function QuickCapture({
 }
 
 function SidepanelWorkspace({
+  analyzeWithAi,
+  analysisError,
   didSave,
   dueToday,
   existingProblem,
@@ -262,6 +297,7 @@ function SidepanelWorkspace({
   mastered,
   manualTitle,
   note,
+  onAnalyzeWithAiChange,
   onCancel,
   onCustomDateChange,
   onEdit,
@@ -280,6 +316,8 @@ function SidepanelWorkspace({
   source,
   upcomingProblems,
 }: {
+  analyzeWithAi: boolean;
+  analysisError: string | null;
   didSave: boolean;
   dueToday: number;
   existingProblem?: RevisionProblem;
@@ -291,6 +329,7 @@ function SidepanelWorkspace({
   mastered: number;
   manualTitle: string;
   note: string;
+  onAnalyzeWithAiChange: (enabled: boolean) => void;
   onCancel: () => void;
   onCustomDateChange: (value: boolean) => void;
   onEdit: () => void;
@@ -462,11 +501,14 @@ function SidepanelWorkspace({
           />
         ) : (
           <CaptureForm
+            analyzeWithAi={analyzeWithAi}
+            analysisError={analysisError}
             didSave={didSave}
             isEditing={isEditing}
             isCustomDate={isCustomDate}
             note={note}
             onCancel={onCancel}
+            onAnalyzeWithAiChange={onAnalyzeWithAiChange}
             onCustomDateChange={onCustomDateChange}
             onNoteChange={onNoteChange}
             onOutcomeChange={onOutcomeChange}
@@ -508,11 +550,14 @@ function SidepanelWorkspace({
 }
 
 function CaptureForm({
+  analyzeWithAi,
+  analysisError,
   didSave,
   isCustomDate,
   isEditing,
   manualTitle,
   note,
+  onAnalyzeWithAiChange,
   onCancel,
   onCustomDateChange,
   onManualTitleChange,
@@ -524,11 +569,14 @@ function CaptureForm({
   reviewDate,
   source,
 }: {
+  analyzeWithAi: boolean;
+  analysisError: string | null;
   didSave: boolean;
   isCustomDate: boolean;
   isEditing: boolean;
   manualTitle: string;
   note: string;
+  onAnalyzeWithAiChange: (enabled: boolean) => void;
   onCancel: () => void;
   onCustomDateChange: (isCustom: boolean) => void;
   onManualTitleChange: (title: string) => void;
@@ -646,10 +694,35 @@ function CaptureForm({
         />
       </label>
 
+      {source !== null && !isEditing && (
+        <div className="mt-5 rounded-xl border border-info/25 bg-info/8 p-4">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              checked={analyzeWithAi}
+              className="mt-0.5 size-4 accent-[var(--color-info)]"
+              onChange={(event) => onAnalyzeWithAiChange(event.target.checked)}
+              type="checkbox"
+            />
+            <span>
+              <strong className="block text-sm">Analyze my current solution with AI</strong>
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                DSA Coach reads the active editor once when you add this question and sends that
+                code with the problem metadata to Groq. The code and analysis are saved locally.
+              </span>
+            </span>
+          </label>
+          {analysisError !== null && (
+            <p className="mt-2 text-xs leading-5 text-error">{analysisError}</p>
+          )}
+        </div>
+      )}
+
       <div className="quick-capture-submit-row mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
         <p aria-live="polite" className="text-sm text-success">
           {didSave
-            ? 'Saved to your revision library.'
+            ? analyzeWithAi
+              ? 'Saved. AI analysis is being prepared.'
+              : 'Saved to your revision library.'
             : `Review on ${formatReviewDate(reviewDate)}.`}
         </p>
         <div className="flex gap-2">
