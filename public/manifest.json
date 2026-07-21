@@ -3,7 +3,7 @@
   "name": "DSA Coach",
   "description": "A private memory system for data structures and algorithms interview preparation.",
   "version": "0.1.0",
-  "minimum_chrome_version": "114",
+  "minimum_chrome_version": "116",
   "action": {
     "default_title": "Open DSA Coach",
     "default_popup": "popup.html"
@@ -15,7 +15,7 @@
   "side_panel": {
     "default_path": "sidepanel.html"
   },
-  "permissions": ["activeTab", "alarms", "sidePanel", "storage"],
+  "permissions": ["activeTab", "alarms", "notifications", "sidePanel", "storage"],
   "host_permissions": ["https://leetcode.com/*"],
   "content_scripts": [
     {
