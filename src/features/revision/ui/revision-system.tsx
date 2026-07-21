@@ -474,29 +474,49 @@ function ProblemList({
 }): React.ReactNode {
   return (
     <ul className="dashboard-problem-list">
-      {problems.map((problem) => (
-        <li className="dashboard-problem-row" key={problem.id}>
-          <span
-            aria-hidden="true"
-            className={cn('dashboard-problem-icon', outcomeColorClass(problem.outcome))}
-          >
-            {problem.title.slice(0, 1).toUpperCase()}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{problem.title}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {revisionOutcomeCopy[problem.outcome].label} ·{' '}
-              {showAddedDate
-                ? `Added ${formatShortDate(problem.createdAt)}`
-                : `Review ${formatShortDate(problem.reviewDate)}`}
-            </p>
-          </div>
-          {!compact && <DifficultyBadge difficulty={getDifficulty(problem)} />}
-          <span className="dashboard-row-arrow" aria-hidden="true">
-            ↗
-          </span>
-        </li>
-      ))}
+      {problems.map((problem) => {
+        const rowContent = (
+          <>
+            <span
+              aria-hidden="true"
+              className={cn('dashboard-problem-icon', outcomeColorClass(problem.outcome))}
+            >
+              {problem.title.slice(0, 1).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{problem.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {revisionOutcomeCopy[problem.outcome].label} ·{' '}
+                {showAddedDate
+                  ? `Added ${formatShortDate(problem.createdAt)}`
+                  : `Review ${formatShortDate(problem.reviewDate)}`}
+              </p>
+            </div>
+            {!compact && <DifficultyBadge difficulty={getDifficulty(problem)} />}
+            <span className="dashboard-row-arrow" aria-hidden="true">
+              ↗
+            </span>
+          </>
+        );
+
+        return (
+          <li key={problem.id}>
+            {problem.source?.url ? (
+              <a
+                aria-label={`Open ${problem.title} on LeetCode`}
+                className="dashboard-problem-row dashboard-problem-link"
+                href={problem.source.url}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {rowContent}
+              </a>
+            ) : (
+              <div className="dashboard-problem-row">{rowContent}</div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
