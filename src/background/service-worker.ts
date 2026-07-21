@@ -24,107 +24,179 @@ type StoredRevisionProblem = {
   source?: ProblemContext;
 };
 type NotifiedReviews = Record<string, string>;
+const inMemoryContexts = new Map<string, ProblemContext>();
 
 async function configureActionBehavior(): Promise<void> {
   // This was enabled by the previous build. Explicitly clear it so the manifest's
   // default popup remains the toolbar action while browser integration is configured.
-  await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
+  if (chrome.sidePanel !== undefined) {
+    await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
+  }
+}
+
+async function restrictStorageAccess(): Promise<void> {
+  const operations: Promise<void>[] = [];
+  if (typeof chrome.storage?.local?.setAccessLevel === 'function') {
+    operations.push(chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }));
+  }
+  if (typeof chrome.storage?.session?.setAccessLevel === 'function') {
+    operations.push(chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }));
+  }
+  await Promise.all(operations);
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  void configureActionBehavior();
-  void configureReviewAlarm();
+  runSafely(configureActionBehavior, 'configure action behavior');
+  runSafely(restrictStorageAccess, 'restrict storage access');
+  runSafely(configureReviewAlarm, 'configure review alarm');
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  void configureActionBehavior();
-  void configureReviewAlarm();
+  runSafely(configureActionBehavior, 'configure action behavior');
+  runSafely(restrictStorageAccess, 'restrict storage access');
+  runSafely(configureReviewAlarm, 'configure review alarm');
+});
+
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === 'open-dashboard') runSafely(openDashboard, 'open dashboard');
+  if (command === 'open-capture') runSafely(() => openCaptureSurface(tab), 'open capture');
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'local' && changes[revisionStorageKey] !== undefined) {
-    void notifyDueReviews();
+    runSafely(notifyDueReviews, 'notify due reviews');
   }
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === reviewScanAlarm) void notifyDueReviews();
+  if (alarm.name === reviewScanAlarm) runSafely(notifyDueReviews, 'notify due reviews');
 });
 
 chrome.notifications.onClicked.addListener((notificationId) => {
   if (!notificationId.startsWith(notificationPrefix)) return;
-  void openReview(notificationId.slice(notificationPrefix.length));
+  runSafely(() => openReview(notificationId.slice(notificationPrefix.length)), 'open review');
 });
 
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
   if (!notificationId.startsWith(notificationPrefix)) return;
 
   const problemId = notificationId.slice(notificationPrefix.length);
-  if (buttonIndex === 0) void openReview(problemId);
-  if (buttonIndex === 1) void rescheduleFromNotification(problemId, snoozeDays);
+  if (buttonIndex === 0) runSafely(() => openReview(problemId), 'open review');
+  if (buttonIndex === 1)
+    runSafely(() => rescheduleFromNotification(problemId, snoozeDays), 'snooze review');
 });
 
 chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
   if (!isExtensionMessage(message)) return;
 
   if (message.type === 'shell.open-dashboard') {
-    void chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+    runSafely(openDashboard, 'open dashboard');
     return;
   }
 
   if (message.type === 'shell.open-side-panel') {
-    if (sender.tab?.id !== undefined) void chrome.sidePanel.open({ tabId: sender.tab.id });
+    runSafely(() => openCaptureSurface(sender.tab), 'open capture');
     return;
   }
 
   if (message.type === 'problem.context.detected') {
-    if (sender.tab?.id !== undefined) void persistContext(sender.tab.id, message.context);
+    const tabId = sender.tab?.id;
+    if (tabId !== undefined)
+      runSafely(() => persistContext(tabId, message.context), 'persist problem context');
     return;
   }
 
   if (message.type === 'capture.active-context.request') {
-    void getActiveContext().then((context) =>
-      sendResponse({ context } satisfies ActiveProblemContextResponse),
-    );
+    const sourceTabId = getSourceTabId(sender);
+    void getActiveContext(sourceTabId)
+      .then((context) => sendResponse({ context } satisfies ActiveProblemContextResponse))
+      .catch(() => sendResponse({ context: null } satisfies ActiveProblemContextResponse));
     return true;
   }
 
   if (message.type === 'capture.active-solution.request') {
-    void getActiveSolutionCode().then((code) =>
-      sendResponse({ code } satisfies ActiveSolutionCodeResponse),
-    );
+    const sourceTabId = getSourceTabId(sender);
+    void getActiveSolutionCode(sourceTabId)
+      .then((code) => sendResponse({ code } satisfies ActiveSolutionCodeResponse))
+      .catch(() => sendResponse({ code: null } satisfies ActiveSolutionCodeResponse));
     return true;
   }
 
   if (message.type === 'review.added') {
-    void notifyReviewAdded(message.title, message.reviewDate);
+    runSafely(() => notifyReviewAdded(message.title, message.reviewDate), 'notify question added');
     return;
   }
 
   if (message.type === 'review.completed') {
-    void notifyReviewCompleted(message.title, message.nextReviewDate);
+    runSafely(
+      () => notifyReviewCompleted(message.title, message.nextReviewDate),
+      'notify review completed',
+    );
   }
 });
 
-async function persistContext(tabId: number, context: ProblemContext): Promise<void> {
-  const stored = await chrome.storage.session.get(activeContextsStorageKey);
-  const contexts = (stored[activeContextsStorageKey] as ContextByTab | undefined) ?? {};
-  await chrome.storage.session.set({
-    [activeContextsStorageKey]: { ...contexts, [String(tabId)]: context },
+function runSafely(task: () => Promise<void>, label: string): void {
+  void task().catch((error: unknown) => {
+    if (import.meta.env.DEV) console.warn(`DSA Coach background task failed: ${label}`, error);
   });
 }
 
-async function getActiveContext(): Promise<ProblemContext | null> {
-  const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (activeTab?.id === undefined) return null;
-
-  const stored = await chrome.storage.session.get(activeContextsStorageKey);
-  const contexts = stored[activeContextsStorageKey] as ContextByTab | undefined;
-  return contexts?.[String(activeTab.id)] ?? null;
+async function openDashboard(): Promise<void> {
+  await chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
 }
 
-async function getActiveSolutionCode(): Promise<string | null> {
-  const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+async function openCaptureSurface(tab?: chrome.tabs.Tab): Promise<void> {
+  if (chrome.sidePanel !== undefined && tab?.id !== undefined) {
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+      return;
+    } catch {
+      // A tab can become unavailable between the command and the side-panel request.
+    }
+  }
+
+  const sourceQuery = tab?.id === undefined ? '' : `?sourceTabId=${String(tab.id)}`;
+  await chrome.tabs.create({
+    url: `${chrome.runtime.getURL('sidepanel.html')}${sourceQuery}`,
+  });
+}
+
+async function persistContext(tabId: number, context: ProblemContext): Promise<void> {
+  if (hasSessionStorage()) {
+    const stored = await chrome.storage.session.get(activeContextsStorageKey);
+    const contexts = (stored[activeContextsStorageKey] as ContextByTab | undefined) ?? {};
+    await chrome.storage.session.set({
+      [activeContextsStorageKey]: { ...contexts, [String(tabId)]: context },
+    });
+    return;
+  }
+
+  inMemoryContexts.set(String(tabId), context);
+}
+
+async function getActiveContext(sourceTabId?: number): Promise<ProblemContext | null> {
+  const tabId =
+    sourceTabId ?? (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id;
+  if (tabId === undefined) return null;
+
+  if (hasSessionStorage()) {
+    const stored = await chrome.storage.session.get(activeContextsStorageKey);
+    const contexts = stored[activeContextsStorageKey] as ContextByTab | undefined;
+    return contexts?.[String(tabId)] ?? null;
+  }
+
+  return inMemoryContexts.get(String(tabId)) ?? null;
+}
+
+function hasSessionStorage(): boolean {
+  return typeof chrome.storage?.session !== 'undefined';
+}
+
+async function getActiveSolutionCode(sourceTabId?: number): Promise<string | null> {
+  const activeTab =
+    sourceTabId === undefined
+      ? (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
+      : await chrome.tabs.get(sourceTabId);
   if (activeTab?.id === undefined || activeTab.url?.startsWith('https://leetcode.com/') !== true) {
     return null;
   }
@@ -137,6 +209,20 @@ async function getActiveSolutionCode(): Promise<string | null> {
     return isActiveSolutionCodeResponse(response) ? response.code : null;
   } catch {
     return null;
+  }
+}
+
+function getSourceTabId(sender: chrome.runtime.MessageSender): number | undefined {
+  const candidateUrl = sender.url;
+  if (candidateUrl === undefined) return sender.tab?.id;
+
+  try {
+    const value = new URL(candidateUrl).searchParams.get('sourceTabId');
+    if (value === null) return sender.tab?.id;
+    const tabId = Number(value);
+    return Number.isInteger(tabId) && tabId >= 0 ? tabId : sender.tab?.id;
+  } catch {
+    return sender.tab?.id;
   }
 }
 

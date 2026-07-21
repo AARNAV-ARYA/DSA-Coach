@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { ProblemAnalysisWorkspace } from '@/features/ai/ui/problem-analysis-workspace';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
   revisionStorageKey,
   reviewDateFromToday,
@@ -19,6 +18,11 @@ type DifficultyFilter = 'all' | 'Easy' | 'Medium' | 'Hard' | 'Unclassified';
 type DateFilter = 'all' | 'today' | 'upcoming';
 
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const ProblemAnalysisWorkspace = lazy(() =>
+  import('@/features/ai/ui/problem-analysis-workspace').then((module) => ({
+    default: module.ProblemAnalysisWorkspace,
+  })),
+);
 
 export function RevisionSystem(): React.ReactNode {
   const problems = useRevisionStore((state) => state.problems);
@@ -209,7 +213,17 @@ export function RevisionSystem(): React.ReactNode {
             </div>
           </header>
 
-          {activeView === 'analysis' && <ProblemAnalysisWorkspace problems={problems} />}
+          {activeView === 'analysis' && (
+            <Suspense
+              fallback={
+                <div className="mt-8 h-96 animate-pulse rounded-3xl bg-muted" role="status">
+                  <span className="sr-only">Loading analysis…</span>
+                </div>
+              }
+            >
+              <ProblemAnalysisWorkspace problems={problems} />
+            </Suspense>
+          )}
 
           <div hidden={activeView === 'analysis'}>
             <section

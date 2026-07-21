@@ -19,27 +19,39 @@ type ExtensionMessageWithoutVersion = ExtensionMessage extends infer Message
 export async function sendExtensionMessage(message: ExtensionMessageWithoutVersion): Promise<void> {
   if (!isExtensionRuntimeAvailable()) return;
 
-  await chrome.runtime.sendMessage({ ...message, version: MESSAGE_VERSION });
+  try {
+    await chrome.runtime.sendMessage({ ...message, version: MESSAGE_VERSION });
+  } catch {
+    // Messages such as notification updates are best-effort while a worker reloads.
+  }
 }
 
 export async function getActiveProblemContext(): Promise<ProblemContext | null> {
   if (!isExtensionRuntimeAvailable()) return null;
 
-  const response: ActiveProblemContextResponse = await chrome.runtime.sendMessage({
-    version: MESSAGE_VERSION,
-    type: 'capture.active-context.request',
-  });
+  try {
+    const response: ActiveProblemContextResponse = await chrome.runtime.sendMessage({
+      version: MESSAGE_VERSION,
+      type: 'capture.active-context.request',
+    });
 
-  return isProblemContext(response?.context) ? response.context : null;
+    return isProblemContext(response?.context) ? response.context : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getActiveSolutionCode(): Promise<string | null> {
   if (!isExtensionRuntimeAvailable()) return null;
 
-  const response: unknown = await chrome.runtime.sendMessage({
-    version: MESSAGE_VERSION,
-    type: 'capture.active-solution.request',
-  });
+  try {
+    const response: unknown = await chrome.runtime.sendMessage({
+      version: MESSAGE_VERSION,
+      type: 'capture.active-solution.request',
+    });
 
-  return isActiveSolutionCodeResponse(response) ? response.code : null;
+    return isActiveSolutionCodeResponse(response) ? response.code : null;
+  } catch {
+    return null;
+  }
 }

@@ -8,6 +8,7 @@ import {
 } from '@/features/revision/model/revision-types';
 
 export const revisionStorageKey = 'dsa-coach.revision-problems.v1';
+const problemAnalysisStorageKey = 'dsa-coach.problem-analyses.v1';
 
 interface RevisionState {
   problems: RevisionProblem[];
@@ -107,10 +108,23 @@ export const useRevisionStore = create<RevisionState>((set, get) => ({
   },
   removeProblem: async (id) => {
     const problems = get().problems.filter((problem) => problem.id !== id);
-    await extensionStorage.set(revisionStorageKey, problems);
+    await Promise.all([
+      extensionStorage.set(revisionStorageKey, problems),
+      removeStoredProblemAnalysis(id),
+    ]);
     set({ problems });
   },
 }));
+
+async function removeStoredProblemAnalysis(problemId: string): Promise<void> {
+  const stored = await extensionStorage.get<unknown>(problemAnalysisStorageKey);
+  if (!Array.isArray(stored)) return;
+  const remaining = stored.filter((record) => {
+    if (typeof record !== 'object' || record === null) return false;
+    return (record as { problemId?: unknown }).problemId !== problemId;
+  });
+  await extensionStorage.set(problemAnalysisStorageKey, remaining);
+}
 
 async function rescheduleProblem(
   id: string,

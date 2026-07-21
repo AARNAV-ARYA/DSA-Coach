@@ -199,9 +199,15 @@ The dashboard shows each optional context category separately. Only checked cate
 
 The LeetCode content script does not continuously collect editor contents. After the learner selects **Analyze my current solution with AI** and adds a question, the trusted capture UI requests the active editor value through the service-worker broker. Failure to read code or reach AI never blocks problem capture. The resulting per-problem analysis record remains in local extension storage and is joined to the learner’s revision problem by ID; records are ordered by the problem’s immutable `createdAt` value.
 
-Prompt version `problem-analysis-v2` adds a bounded review of voluntarily shared code, two or three ordered solution stages from brute force to optimal, fresh educational implementations, complexity, a real-life analogy, a worked example, and a structured visual flow. The visual is data-driven UI rather than model-generated executable markup. All learner-facing generated fields and code are editable before local save.
+Prompt version `problem-analysis-v2` generates three ordered solution stages—brute force, improved, and optimal—with fresh educational implementations and complexity. The focused Analysis page exposes only the editable topic, those methods, their time/space complexity, and verified related problems. Additional structured fields retained by the versioned contract remain hidden so existing local drafts stay schema-compatible.
 
 **Provider portability rule:** domain contracts, consent filtering, editable drafts, and related-problem validation cannot depend on Groq response objects. A later provider change implements `AiProvider` and introduces a new prompt/model version without changing learner-owned drafts.
+
+### 10.2 Extension release hardening
+
+The production extension build enforces explicit CSP, trusted-context Chrome storage access, no source maps or secret files, a 5 MB unpacked package budget, a per-JavaScript-file budget, and classic content scripts without module imports. React surfaces and the Analysis feature load as separate chunks so the popup and side panel do not eagerly evaluate dashboard-only code. Packaged assets and local records make core capture/revision views offline-ready; private AI responses are never placed in a shared network cache.
+
+Chrome is the primary distribution target. A separately generated Firefox manifest replaces Chrome's side-panel declaration with `sidebar_action`; runtime side-panel calls fall back to an extension tab when the API is unavailable. Browser-specific packages remain independent so Chrome permissions and Web Store review metadata stay precise.
 
 ## 11. Scalability and reliability
 

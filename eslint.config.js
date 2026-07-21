@@ -7,10 +7,18 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'dist-server', 'node_modules', 'eslint.config.js'],
+    ignores: ['dist', 'dist-server', 'dist-firefox', 'release', 'node_modules', 'eslint.config.js'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
+  {
+    files: ['scripts/**/*.mjs'],
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: globals.node,
+    },
+  },
   {
     files: ['src/**/*.{ts,tsx}', 'server/**/*.ts', 'vite.config.ts'],
     languageOptions: {

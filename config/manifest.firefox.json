@@ -5,7 +5,6 @@
   "description": "A private memory system for data structures and algorithms interview preparation.",
   "homepage_url": "https://github.com/AARNAV-ARYA/DSA-Coach",
   "version": "0.2.0",
-  "minimum_chrome_version": "116",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -23,11 +22,16 @@
     }
   },
   "background": {
-    "service_worker": "background/service-worker.js",
+    "scripts": ["background/service-worker.js"],
     "type": "module"
   },
-  "side_panel": {
-    "default_path": "sidepanel.html"
+  "sidebar_action": {
+    "default_title": "DSA Coach",
+    "default_panel": "sidepanel.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "commands": {
     "open-dashboard": {
@@ -45,7 +49,7 @@
       "description": "Open problem capture for the current tab"
     }
   },
-  "permissions": ["activeTab", "alarms", "notifications", "sidePanel", "storage"],
+  "permissions": ["activeTab", "alarms", "notifications", "storage"],
   "host_permissions": ["https://leetcode.com/*"],
   "optional_host_permissions": ["http://127.0.0.1:8787/*"],
   "content_scripts": [
@@ -58,5 +62,11 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "incognito": "not_allowed"
+  "incognito": "not_allowed",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "dsa-coach@aarnavarya",
+      "strict_min_version": "121.0"
+    }
+  }
 }

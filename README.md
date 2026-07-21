@@ -8,7 +8,7 @@ It is deliberately not another solved-problem tracker. Its job is to turn solvin
 
 Phase 1 project foundation and the local revision experience are available. DSA Coach detects a LeetCode problem’s number, title, difficulty, and canonical URL, then opens a focused capture panel. Users can keep private notes, manage reviews, and receive reminders. The codebase includes a tested, versioned adaptive scheduling engine; migrating the legacy fixed-day review actions and saved records to that engine remains an explicit integration step. The dashboard also includes an opt-in AI study workspace as a local development vertical slice; its API remains loopback-only until account identity and authenticated cloud deployment exist.
 
-When adding a detected LeetCode question, the learner may explicitly opt in to a one-time read of the active code editor. The question is saved immediately even if AI is unavailable. Analysis records are stored locally per question and appear latest-first in the dashboard’s **Analysis** view, with the learner’s code review, brute-force-to-optimal progression, editable solution code, analogy, worked example, and visual flow.
+When adding a detected LeetCode question, the learner may explicitly opt in to a one-time read of the active code editor. The question is saved immediately even if AI is unavailable. Analysis records are stored locally per question and appear latest-first in the dashboard’s **Analysis** view. The focused view contains only the editable topic, brute-force, improved, and optimal methods, time/space complexity, and verified related problems.
 
 ## Local development
 
@@ -27,12 +27,24 @@ The Groq key must never be added to extension storage, frontend environment vari
 
 Use `npm run check` for Prettier, ESLint, strict TypeScript validation, and tests. Use `npm run build` to produce the unpacked Chrome extension in `dist/` and the API in `dist-server/`; load `dist/` through Chrome's **Load unpacked** control on the Extensions page.
 
+Production commands:
+
+```bash
+npm run test:production  # build and validate the Chrome package
+npm run package:chrome   # create release/dsa-coach-<version>-chrome.zip
+npm run build:firefox    # create and validate dist-firefox/
+```
+
+The extension core is offline-ready because its code, UI assets, revision data, notes, and generated analyses are packaged or stored locally. New AI generation requires the separately running API. The loopback API is a development-only boundary and must be replaced with an authenticated HTTPS deployment before advertising AI in a public store release.
+
 ## Source-of-truth documents
 
 - [Product specification](PROJECT_SPEC.md) — users, scope, workflows, and UX bar.
 - [Technical architecture](ARCHITECTURE.md) — extension design, backend, communication, storage, schema, APIs, privacy, and scale plan.
 - [Roadmap](ROADMAP.md) — approval gates and implementation sequence.
 - [Contributing](CONTRIBUTING.md) — change and documentation standards.
+- [Privacy policy](PRIVACY.md) — current data handling and deletion behavior.
+- [Publication checklist](docs/RELEASE_CHECKLIST.md) — package and Web Store gates.
 
 ## Design commitments
 

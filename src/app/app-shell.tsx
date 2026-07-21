@@ -1,8 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { ThemeToggle } from '@/features/theme/ui/theme-toggle';
-import { LeetCodeDetectionToggle } from '@/features/leetcode/ui/leetcode-detection-toggle';
-import { QuickCapture } from '@/features/revision/ui/quick-capture';
-import { RevisionSystem } from '@/features/revision/ui/revision-system';
 import { Brand } from '@/shared/ui/brand';
+
+const QuickCapture = lazy(() =>
+  import('@/features/revision/ui/quick-capture').then((module) => ({
+    default: module.QuickCapture,
+  })),
+);
+const RevisionSystem = lazy(() =>
+  import('@/features/revision/ui/revision-system').then((module) => ({
+    default: module.RevisionSystem,
+  })),
+);
 
 type Surface = 'dashboard' | 'popup' | 'sidepanel';
 
@@ -32,44 +41,63 @@ export function AppShell({ surface }: { surface: Surface }): React.ReactNode {
   const isWorkspace = isPopup || isSidepanel;
 
   return (
-    <main
-      className={
-        isWorkspace
-          ? 'sidepanel-app'
-          : isDashboard
-            ? 'dashboard-shell mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-8'
-            : 'mx-auto max-w-5xl p-6 sm:p-10'
-      }
-    >
-      {!isWorkspace && (
-        <header className="flex items-center justify-between">
-          <Brand compact={isPopup} />
-          <ThemeToggle />
-        </header>
-      )}
-      {surface === 'dashboard' ? (
-        <RevisionSystem />
-      ) : surface === 'popup' || surface === 'sidepanel' ? (
-        <QuickCapture compact={isPopup} sidepanel={isWorkspace} />
-      ) : (
-        <section className="pt-12">
-          <p className="text-sm font-medium text-accent">{copy.eyebrow}</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl">
-            {copy.title}
-          </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
-            {copy.description}
-          </p>
-          {isPopup && <LeetCodeDetectionToggle />}
-        </section>
-      )}
-      <footer
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
         className={
-          isWorkspace ? 'hidden' : 'mt-16 border-t border-border pt-4 text-xs text-muted-foreground'
+          isWorkspace
+            ? 'sidepanel-app'
+            : isDashboard
+              ? 'dashboard-shell mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-8'
+              : 'mx-auto max-w-5xl p-6 sm:p-10'
         }
       >
-        DSA Coach · local-first revision
-      </footer>
-    </main>
+        {!isWorkspace && (
+          <header className="flex items-center justify-between">
+            <Brand compact={isPopup} />
+            <ThemeToggle />
+          </header>
+        )}
+        <Suspense fallback={<SurfaceLoading compact={isWorkspace} />}>
+          {surface === 'dashboard' ? (
+            <RevisionSystem />
+          ) : surface === 'popup' || surface === 'sidepanel' ? (
+            <QuickCapture compact={isPopup} sidepanel={isWorkspace} />
+          ) : (
+            <section className="pt-12">
+              <p className="text-sm font-medium text-accent">{copy.eyebrow}</p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl">
+                {copy.title}
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
+                {copy.description}
+              </p>
+            </section>
+          )}
+        </Suspense>
+        <footer
+          className={
+            isWorkspace
+              ? 'hidden'
+              : 'mt-16 border-t border-border pt-4 text-xs text-muted-foreground'
+          }
+        >
+          DSA Coach · local-first revision
+        </footer>
+      </main>
+    </>
+  );
+}
+
+function SurfaceLoading({ compact }: { compact: boolean }): React.ReactNode {
+  return (
+    <div className={compact ? 'surface-loading surface-loading-compact' : 'surface-loading'}>
+      <span aria-hidden="true" />
+      <p role="status">Loading DSA Coach…</p>
+    </div>
   );
 }
