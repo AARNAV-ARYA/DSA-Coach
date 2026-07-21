@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { AiCoachWorkspace } from '@/features/ai/ui/ai-coach-workspace';
 import {
   revisionStorageKey,
   reviewDateFromToday,
@@ -146,6 +147,9 @@ export function RevisionSystem(): React.ReactNode {
             </a>
             <a className="dashboard-nav-link" href="#calendar">
               <span aria-hidden="true">▦</span> Calendar
+            </a>
+            <a className="dashboard-nav-link" href="#ai-coach">
+              <span aria-hidden="true">✧</span> AI Coach
             </a>
           </nav>
           <div className="dashboard-sidebar-note">
@@ -423,6 +427,9 @@ export function RevisionSystem(): React.ReactNode {
                     />
                   )}
                 </SectionCard>
+              </div>
+              <div id="ai-coach">
+                <AiCoachWorkspace />
               </div>
             </>
           )}

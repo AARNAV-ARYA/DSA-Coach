@@ -1,12 +1,12 @@
 # DSA Coach
 
-DSA Coach is a premium Chrome extension that helps interview candidates remember every DSA problem they solve. It uses active recall, spaced repetition, private reflections, analytics, and—later—an opt-in AI coach.
+DSA Coach is a premium Chrome extension that helps interview candidates remember every DSA problem they solve. It uses active recall, spaced repetition, private reflections, analytics, and an opt-in AI coach.
 
 It is deliberately not another solved-problem tracker. Its job is to turn solving history into durable memory.
 
 ## Current status
 
-Phase 1 project foundation is complete. The first scoped LeetCode integration is also available: DSA Coach detects the problem number, title, difficulty, and canonical URL, then opens a focused capture panel. Users choose an understanding level, optional private note, and review date; records remain local to the extension for this build.
+Phase 1 project foundation and the local revision experience are available. DSA Coach detects a LeetCode problem’s number, title, difficulty, and canonical URL, then opens a focused capture panel. Users can keep private notes, manage reviews, receive reminders, and use the versioned adaptive scheduling engine. The dashboard also includes an opt-in AI study workspace as a local development vertical slice; its API remains loopback-only until account identity and authenticated cloud deployment exist.
 
 ## Local development
 
@@ -15,7 +15,15 @@ npm install
 npm run dev
 ```
 
-Use `npm run check` for Prettier, ESLint, and strict TypeScript validation. Use `npm run build` to produce the unpacked Chrome extension in `dist/`; load that directory through Chrome's **Load unpacked** control on the Extensions page.
+For the AI workspace, copy `.env.example` to the ignored `.env`, set a server-side `GROQ_API_KEY`, and start the loopback API in a second terminal:
+
+```bash
+npm run dev:api
+```
+
+The Groq key must never be added to extension storage, frontend environment variables, source code, or Git. The dashboard requests optional access to `http://127.0.0.1:8787` only when the user generates insights.
+
+Use `npm run check` for Prettier, ESLint, strict TypeScript validation, and tests. Use `npm run build` to produce the unpacked Chrome extension in `dist/` and the API in `dist-server/`; load `dist/` through Chrome's **Load unpacked** control on the Extensions page.
 
 ## Source-of-truth documents
 

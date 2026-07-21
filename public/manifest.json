@@ -17,6 +17,7 @@
   },
   "permissions": ["activeTab", "alarms", "notifications", "sidePanel", "storage"],
   "host_permissions": ["https://leetcode.com/*"],
+  "optional_host_permissions": ["http://127.0.0.1:8787/*"],
   "content_scripts": [
     {
       "matches": ["https://leetcode.com/*"],

@@ -9,14 +9,13 @@ type Surface = 'dashboard' | 'popup' | 'sidepanel';
 const surfaceCopy: Record<Surface, { eyebrow: string; title: string; description: string }> = {
   dashboard: {
     eyebrow: 'Your preparation space',
-    title: 'A calmer way to remember.',
-    description:
-      'The product foundation is ready. Learning experiences will arrive in deliberate layers.',
+    title: 'Understand what made it click.',
+    description: 'Generate a private study draft, then shape every word into your own memory aid.',
   },
   popup: {
     eyebrow: 'DSA Coach',
     title: 'Your memory system.',
-    description: 'Open the panel to begin when the learning loop is available.',
+    description: 'Open your private workspace to turn a solved problem into durable intuition.',
   },
   sidepanel: {
     eyebrow: 'DSA Coach',

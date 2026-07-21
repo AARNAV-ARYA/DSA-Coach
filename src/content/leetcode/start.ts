@@ -8,7 +8,7 @@ const integrationMarker = '__dsaCoachLeetCodeIntegrationStarted__';
 type IntegrationWindow = Window & { [integrationMarker]?: boolean };
 
 export function startLeetCodeProblemIntegration(): void {
-  const integrationWindow = globalThis as IntegrationWindow;
+  const integrationWindow = window as IntegrationWindow;
   if (integrationWindow[integrationMarker] === true) return;
   integrationWindow[integrationMarker] = true;
 

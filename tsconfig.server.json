@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "outDir": "dist-server",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["server/**/*.ts", "src/features/ai/model/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

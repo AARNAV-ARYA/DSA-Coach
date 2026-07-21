@@ -147,6 +147,14 @@ Each user-problem has multiple purpose-specific cards rather than one vague “r
 
 **Decision:** user actions are append-only events; current card state and analytics are derived projections. This protects learning history, enables algorithm improvement, and supports audit/debugging without corrupting a learner’s progress.
 
+#### Adaptive scheduler v1
+
+The initial implementation is inspired by the explainable state models used by Anki, SuperMemo, and FSRS, but is an independently versioned DSA Coach policy rather than a compatibility implementation. Each card stores adaptive difficulty and stability, where stability is the number of days at which estimated retrievability reaches 90%. Retrievability decays continuously as `0.9^(elapsed days / stability days)`; the application derives a due instant from the returned interval and review completion time, so the policy contains no fixed calendar dates.
+
+On every review, the policy combines correctness, response time relative to the card type's expected response time, hints, failed attempts, prior success rate, consecutive successes, cumulative lapses, current retrievability, and existing stability. Successful recall grows stability; slow, assisted, or failure-prone recall produces less growth. An unsuccessful recall contracts stability and raises the target retention rate to create an adaptive relearning interval. Observed performance gradually updates difficulty, while bounded coefficients and input validation prevent runaway schedules or invalid state.
+
+The scheduler returns the algorithm version, next interval, target retention, pre-review retrievability, normalized quality, updated memory state, and human-readable factors. Review events must retain the observations and algorithm version needed to reproduce the calculation. Coefficients may later be calibrated from anonymized aggregate outcomes through a new algorithm version; existing historical results must never be silently reinterpreted.
+
 ## 9. Public API design
 
 The extension calls versioned HTTPS JSON endpoints over TLS. Auth uses short-lived access tokens plus rotating refresh tokens stored only in trusted extension contexts. API requests include installation ID, request ID, and idempotency key for mutations.
@@ -180,6 +188,16 @@ AI is an enhancement, never the authoritative source of a user’s memory schedu
 5. Users can delete conversation history and disable AI independently of core tracking.
 
 **Decision:** keep prompts, providers, and evaluation behind an internal gateway. This prevents provider coupling, permits cost controls and fallbacks, and creates an auditable path before AI affects product decisions.
+
+### 10.1 Initial AI study-synthesis implementation
+
+The first concrete provider gateway uses Groq's OpenAI-compatible chat-completions endpoint with `openai/gpt-oss-120b` and strict JSON Schema output. The model returns concise notes, algorithm and pattern identification, a bounded stuck hypothesis, one-line intuition, optimal-solution summary, and related-problem identifiers. The gateway—not the model—maps related identifiers through a curated LeetCode catalog, preventing invented titles or links. Provider, model, and prompt versions remain metadata on every result.
+
+The browser never receives `GROQ_API_KEY`. During local development, a modular API binds only to `127.0.0.1`, applies body limits, request timeouts, rate limits, origin checks, runtime validation, and privacy-safe error envelopes. It must not bind to a public interface until the Identity module supplies authenticated user context, per-user authorization, entitlements, and production rate limits.
+
+The dashboard shows each optional context category separately. Only checked categories are serialized into the request, and the server rejects optional fields that lack the matching consent scope. Generated content is an editable local draft; regenerating does not silently overwrite unsaved edits. “Why you got stuck” is always a hypothesis with confidence and evidence, never a diagnosis or fixed judgment about the learner.
+
+**Provider portability rule:** domain contracts, consent filtering, editable drafts, and related-problem validation cannot depend on Groq response objects. A later provider change implements `AiProvider` and introduces a new prompt/model version without changing learner-owned drafts.
 
 ## 11. Scalability and reliability
 
