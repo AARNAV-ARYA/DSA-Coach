@@ -41,7 +41,10 @@ export class LeetCodeProblemWidget {
       'click',
       (event) => {
         event.stopPropagation();
-        void this.openCapturePanel();
+        void this.openCapturePanel().catch(() => {
+          // The extension may be reloading while a page still has the old content script.
+          // Chrome will reinject the current script after the page is refreshed.
+        });
       },
       { signal: this.eventController.signal },
     );

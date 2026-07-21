@@ -2,13 +2,27 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 const resolveFromRoot = (target: string) => path.resolve(rootDirectory, target);
 
+function assertClassicContentScriptIsSelfContained(): Plugin {
+  return {
+    name: 'assert-classic-content-script-is-self-contained',
+    generateBundle(_options, bundle) {
+      const contentScript = bundle['content/problem-context.js'];
+      if (contentScript?.type === 'chunk' && contentScript.imports.length > 0) {
+        this.error(
+          `Chrome manifest content scripts cannot contain ES-module imports. Found: ${contentScript.imports.join(', ')}`,
+        );
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), assertClassicContentScriptIsSelfContained()],
   resolve: {
     alias: {
       '@': resolveFromRoot('src'),
