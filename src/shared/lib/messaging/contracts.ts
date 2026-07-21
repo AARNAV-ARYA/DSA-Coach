@@ -13,6 +13,10 @@ export type ExtensionMessage =
       version: typeof MESSAGE_VERSION;
       type: 'problem.context.detected';
       context: ProblemContext;
+    }
+  | {
+      version: typeof MESSAGE_VERSION;
+      type: 'capture.active-context.request';
     };
 
 export interface ProblemContext {
@@ -23,6 +27,10 @@ export interface ProblemContext {
   url: string;
 }
 
+export interface ActiveProblemContextResponse {
+  context: ProblemContext | null;
+}
+
 export function isExtensionMessage(value: unknown): value is ExtensionMessage {
   if (typeof value !== 'object' || value === null) return false;
 
@@ -31,11 +39,12 @@ export function isExtensionMessage(value: unknown): value is ExtensionMessage {
     candidate.version === MESSAGE_VERSION &&
     (candidate.type === 'shell.open-side-panel' ||
       candidate.type === 'shell.open-dashboard' ||
+      candidate.type === 'capture.active-context.request' ||
       (candidate.type === 'problem.context.detected' && isProblemContext(candidate.context)))
   );
 }
 
-function isProblemContext(value: unknown): value is ProblemContext {
+export function isProblemContext(value: unknown): value is ProblemContext {
   if (typeof value !== 'object' || value === null) return false;
 
   const context = value as Partial<ProblemContext>;

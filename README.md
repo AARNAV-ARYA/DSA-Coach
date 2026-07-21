@@ -6,7 +6,7 @@ It is deliberately not another solved-problem tracker. Its job is to turn solvin
 
 ## Current status
 
-Phase 1 project foundation is complete. The first scoped Phase 2 browser integration is also available: after Chrome grants the extension’s narrowly scoped LeetCode access at installation, DSA Coach detects supported problem pages and shows a small in-page detail control. It reads only the problem ID, title, difficulty, and canonical URL; it does not save data or implement reviews yet.
+Phase 1 project foundation is complete. The first scoped LeetCode integration is also available: DSA Coach detects the problem number, title, difficulty, and canonical URL, then opens a focused capture panel. Users choose an understanding level, optional private note, and review date; records remain local to the extension for this build.
 
 ## Local development
 
