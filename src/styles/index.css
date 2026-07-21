@@ -2294,6 +2294,40 @@ button {
   color: #51a68e;
 }
 
+/* Keep the primary capture action visible above the fixed navigation dock. */
+.sidepanel-capture-card {
+  padding-bottom: 5.6rem;
+}
+
+.sidepanel-capture-card .quick-capture-submit-row {
+  display: grid;
+  gap: 0.8rem;
+  align-items: stretch;
+}
+
+.sidepanel-capture-card .quick-capture-submit-row > p {
+  order: 2;
+}
+
+.sidepanel-capture-card .quick-capture-submit-row > div {
+  order: 1;
+  width: 100%;
+}
+
+.sidepanel-capture-card .quick-capture-submit-button {
+  width: 100%;
+  min-height: 3.15rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #55b99c, #2fc0d6);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgb(42 165 150 / 20%);
+}
+
+.sidepanel-capture-card .quick-capture-submit-button:hover {
+  background: linear-gradient(135deg, #45a98d, #23aec3);
+  transform: translateY(-1px);
+}
+
 @keyframes sidepanel-shimmer {
   to {
     background-position: -200% 0;

@@ -32,10 +32,10 @@ export class LeetCodeProblemWidget {
 
     const action = document.createElement('button');
     action.className = 'dsa-coach-action';
-    action.setAttribute('aria-label', `Add ${this.context.title} to DSA Coach`);
-    action.title = `Add ${this.context.title} to DSA Coach`;
+    action.setAttribute('aria-label', `Add question: ${this.context.title}`);
+    action.title = `Add question: ${this.context.title}`;
     action.type = 'button';
-    action.innerHTML = '<span aria-hidden="true">+</span><strong>DSA Coach</strong>';
+    action.innerHTML = '<span aria-hidden="true">+</span><strong>Add question</strong>';
 
     action.addEventListener(
       'click',

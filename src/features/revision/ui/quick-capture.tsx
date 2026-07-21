@@ -620,7 +620,7 @@ function CaptureForm({
         />
       </label>
 
-      <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+      <div className="quick-capture-submit-row mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
         <p aria-live="polite" className="text-sm text-success">
           {didSave
             ? 'Saved to your revision library.'
@@ -632,8 +632,12 @@ function CaptureForm({
               Cancel
             </Button>
           )}
-          <Button disabled={isManualEntry && manualTitle.trim() === ''} onClick={onSave}>
-            {isEditing ? 'Save changes' : 'Add to review'}
+          <Button
+            className="quick-capture-submit-button"
+            disabled={isManualEntry && manualTitle.trim() === ''}
+            onClick={onSave}
+          >
+            {isEditing ? 'Save changes' : 'Add question to reviews'}
           </Button>
         </div>
       </div>
