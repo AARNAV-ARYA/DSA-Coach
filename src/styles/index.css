@@ -503,6 +503,128 @@ button {
   text-decoration: none;
 }
 
+.analysis-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.focused-analysis {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.focused-analysis-field {
+  display: grid;
+  gap: 0.45rem;
+  color: #34425f;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.focused-analysis-input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #c9deeb;
+  border-radius: 0.8rem;
+  background: #fff;
+  color: #283356;
+  font: inherit;
+  font-weight: 450;
+  outline: none;
+}
+
+.focused-analysis-input:focus {
+  border-color: #7567e8;
+  box-shadow: 0 0 0 3px #7567e826;
+}
+
+.focused-methods {
+  display: grid;
+  gap: 1rem;
+}
+
+.focused-method {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #c9deeb;
+  border-radius: 1.2rem;
+  background: #f8fbff;
+}
+
+.focused-method-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.focused-method-heading strong {
+  color: #6259bd;
+  font-size: 0.88rem;
+}
+
+.focused-method-heading span {
+  color: #718099;
+  font-size: 0.7rem;
+}
+
+.focused-analysis-idea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.focused-analysis-code {
+  min-height: 13rem;
+  resize: vertical;
+  background: #172033;
+  color: #e7edf7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+.focused-complexity {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.focused-related {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #d7e7f1;
+}
+
+.focused-related h4 {
+  color: #34425f;
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.focused-related-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.focused-related-item a {
+  color: #6259bd;
+  font-size: 0.74rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.focused-analysis-save {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .analysis-detail-meta {
   display: flex;
   gap: 0.45rem;
@@ -662,6 +784,17 @@ button {
   .analysis-detail-header a,
   .analysis-code-actions button {
     width: 100%;
+  }
+
+  .analysis-header-actions,
+  .focused-method-heading {
+    width: 100%;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .focused-complexity {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -62,6 +62,16 @@ const generatedOutput = {
       tradeoff: 'Simple, but repeats work.',
     },
     {
+      kind: 'improved',
+      title: 'Sort with original indices',
+      idea: 'Sort value-index pairs, then move two pointers toward the target.',
+      intuition: 'Ordering tells us which side must move.',
+      code: 'function twoSum(nums: number[], target: number): number[] { return []; }',
+      timeComplexity: 'O(n log n)',
+      spaceComplexity: 'O(n)',
+      tradeoff: 'Faster than pair checking, but sorting adds work and index bookkeeping.',
+    },
+    {
       kind: 'optimal',
       title: 'Remember complements',
       idea: 'Use a map to find each complement in one pass.',

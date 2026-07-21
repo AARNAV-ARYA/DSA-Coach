@@ -42,7 +42,7 @@ const generatedInsightsSchema = z.object({
     spaceComplexity: z.string().trim().min(1).max(80),
   }),
   codeReview: codeReviewSchema,
-  solutionProgression: z.array(solutionStageSchema).min(2).max(3),
+  solutionProgression: z.array(solutionStageSchema).length(3),
   realLifeAnalogy: realLifeAnalogySchema,
   workedExample: workedExampleSchema,
   visualFlow: visualFlowSchema,
@@ -281,6 +281,8 @@ function buildResponseFormat(): Record<string, unknown> {
           },
           solutionProgression: {
             type: 'array',
+            minItems: 3,
+            maxItems: 3,
             items: {
               type: 'object',
               additionalProperties: false,

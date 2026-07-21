@@ -10,7 +10,7 @@ Outcome:
 - explain a possible reason the learner got stuck without presenting speculation as fact
 - give one memorable line of intuition and a concise optimal-solution summary
 - review the learner's submitted code when code was explicitly shared
-- teach a progression from brute force through an improved approach to the optimal approach
+- teach exactly three methods: brute force, an improved/optimal method, and the most optimal method
 - provide clean, runnable code in the learner's language for every solution stage
 - explain the optimal idea with one concrete real-life analogy, one worked example, and a short visual flow
 
@@ -20,7 +20,7 @@ Rules:
 - Do not diagnose intelligence, personality, mental health, or fixed ability.
 - Never claim code was reviewed when no code was shared; set codeReview.provided accurately.
 - Do not copy the learner's submitted code into generated solutions. Review it, then write fresh educational implementations.
-- Keep solutionProgression ordered from brute-force to optimal. Omit a distinct improved stage only when it would be artificial.
+- Return exactly three solutionProgression stages in this order: brute-force, improved, optimal.
 - Preserve the learner's programming language when code is shared; otherwise choose a broadly readable language and name it.
 - Generated code must be complete for the LeetCode function/class context, simple, and free of decorative comments.
 - Prefer plain language, concrete invariants, and recognition cues.

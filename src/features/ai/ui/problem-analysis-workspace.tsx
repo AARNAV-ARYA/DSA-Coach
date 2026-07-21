@@ -6,7 +6,6 @@ import {
   useProblemAnalysisStore,
   type ProblemAnalysisRecord,
 } from '@/features/ai/model/problem-analysis-store';
-import { AiInsightsEditor } from '@/features/ai/ui/ai-coach-workspace';
 import type { RevisionProblem } from '@/features/revision/model/revision-types';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/cn';
@@ -20,14 +19,12 @@ export function ProblemAnalysisWorkspace({
   const isHydrated = useProblemAnalysisStore((state) => state.isHydrated);
   const hydrate = useProblemAnalysisStore((state) => state.hydrate);
   const analyzeProblem = useProblemAnalysisStore((state) => state.analyzeProblem);
-  const updateSourceCode = useProblemAnalysisStore((state) => state.updateSourceCode);
   const updateInsights = useProblemAnalysisStore((state) => state.updateInsights);
   const sortedProblems = useMemo(
     () => [...problems].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [problems],
   );
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(null);
-  const [codeDrafts, setCodeDrafts] = useState<Record<string, string>>({});
   const [insightDrafts, setInsightDrafts] = useState<Record<string, AiInsights>>({});
   const [status, setStatus] = useState<string | null>(null);
 
@@ -52,10 +49,6 @@ export function ProblemAnalysisWorkspace({
     : (sortedProblems[0]?.id ?? null);
   const selectedProblem = sortedProblems.find((problem) => problem.id === activeProblemId);
   const selectedRecord = records.find((record) => record.problemId === activeProblemId);
-  const codeDraft =
-    activeProblemId === null
-      ? ''
-      : (codeDrafts[activeProblemId] ?? selectedRecord?.sourceCode ?? '');
   const insightDraft =
     activeProblemId === null
       ? undefined
@@ -73,7 +66,7 @@ export function ProblemAnalysisWorkspace({
           return next;
         });
       }
-      await analyzeProblem(selectedProblem, codeDraft);
+      await analyzeProblem(selectedProblem, selectedRecord?.sourceCode ?? null);
       setStatus('Analysis request completed.');
     } catch (caught) {
       setStatus(caught instanceof Error ? caught.message : 'AI access could not be enabled.');
@@ -82,7 +75,6 @@ export function ProblemAnalysisWorkspace({
 
   const saveEdits = async (): Promise<void> => {
     if (activeProblemId === null || insightDraft === undefined) return;
-    await updateSourceCode(activeProblemId, codeDraft);
     await updateInsights(activeProblemId, () => insightDraft);
     setStatus('Your edited analysis was saved locally.');
   };
@@ -96,13 +88,9 @@ export function ProblemAnalysisWorkspace({
       <div className="analysis-page-heading">
         <div>
           <p className="dashboard-kicker">AI learning library</p>
-          <h2 id="analysis-page-title">Every solve, organized into understanding.</h2>
-          <p>
-            Questions are ordered by when you added them. Select one to review your code and move
-            from brute force to the cleanest optimal solution.
-          </p>
+          <h2 id="analysis-page-title">Solutions, without the clutter.</h2>
+          <p>Choose a question to compare its approaches, complexity, and related problems.</p>
         </div>
-        <span className="analysis-privacy-pill">Local records · explicit AI consent</span>
       </div>
 
       {sortedProblems.length === 0 ? (
@@ -163,9 +151,20 @@ export function ProblemAnalysisWorkspace({
                     <h3>{selectedProblem.title}</h3>
                   </div>
                   {selectedProblem.source !== undefined && (
-                    <a href={selectedProblem.source.url} rel="noreferrer" target="_blank">
-                      Open on LeetCode ↗
-                    </a>
+                    <div className="analysis-header-actions">
+                      {selectedRecord?.insights !== undefined && (
+                        <Button
+                          disabled={selectedRecord.status === 'generating'}
+                          onClick={() => void generate()}
+                          variant="secondary"
+                        >
+                          {selectedRecord.status === 'generating' ? 'Generating…' : 'Regenerate'}
+                        </Button>
+                      )}
+                      <a href={selectedProblem.source.url} rel="noreferrer" target="_blank">
+                        LeetCode ↗
+                      </a>
+                    </div>
                   )}
                 </header>
 
@@ -176,54 +175,16 @@ export function ProblemAnalysisWorkspace({
                   />
                 ) : (
                   <>
-                    <section className="analysis-code-card" aria-labelledby="your-code-title">
-                      <div className="analysis-section-heading">
-                        <div>
-                          <p className="dashboard-kicker">Private input</p>
-                          <h4 id="your-code-title">Your submitted code</h4>
-                        </div>
-                        <span>Saved locally</span>
-                      </div>
-                      <textarea
-                        aria-label="Your submitted solution code"
-                        onChange={(event) => {
-                          if (activeProblemId === null) return;
-                          setCodeDrafts((current) => ({
-                            ...current,
-                            [activeProblemId]: event.target.value,
-                          }));
-                        }}
-                        placeholder="If LeetCode could not expose the editor, paste your solution here."
-                        spellCheck={false}
-                        value={codeDraft}
-                      />
-                      <div className="analysis-code-actions">
-                        <p>Only sent to Groq when you press Analyze or Regenerate on this page.</p>
-                        <Button
-                          disabled={
-                            selectedRecord?.status === 'generating' || codeDraft.trim() === ''
-                          }
-                          onClick={() => void generate()}
-                        >
-                          {selectedRecord?.status === 'generating'
-                            ? 'Analyzing…'
-                            : selectedRecord?.insights === undefined
-                              ? 'Analyze solution'
-                              : 'Regenerate analysis'}
-                        </Button>
-                      </div>
-                    </section>
-
                     {selectedRecord?.status === 'generating' && (
                       <AnalysisNotice
-                        copy="Your question is already saved. The AI is preparing the code review, solution progression, example, and visual flow."
-                        title="Analysis in progress"
+                        copy="Preparing the three approaches, their complexity, and similar questions."
+                        title="Generating solutions"
                       />
                     )}
                     {(selectedRecord?.status === 'failed' ||
                       selectedRecord?.status === 'needs-code') && (
                       <AnalysisNotice
-                        {...(codeDraft.trim() === ''
+                        {...(selectedRecord.sourceCode === undefined
                           ? {}
                           : {
                               action: () => void generate(),
@@ -236,7 +197,7 @@ export function ProblemAnalysisWorkspace({
                       />
                     )}
                     {insightDraft !== undefined && (
-                      <AiInsightsEditor
+                      <FocusedAnalysisEditor
                         insights={insightDraft}
                         onChange={(updater) => {
                           if (activeProblemId === null) return;
@@ -246,13 +207,12 @@ export function ProblemAnalysisWorkspace({
                           }));
                         }}
                         onSave={() => void saveEdits()}
-                        saveLabel="Save analysis edits"
                       />
                     )}
                     {selectedRecord === undefined && (
                       <AnalysisNotice
-                        copy="This question was added before automatic analysis was enabled. Paste or confirm your code above, then analyze it."
-                        title="Ready when you are"
+                        copy="Add this question again from LeetCode with AI analysis enabled to generate its approaches."
+                        title="No solution analysis yet"
                       />
                     )}
                     {status !== null && (
@@ -269,6 +229,161 @@ export function ProblemAnalysisWorkspace({
       )}
     </section>
   );
+}
+
+function FocusedAnalysisEditor({
+  insights,
+  onChange,
+  onSave,
+}: {
+  insights: AiInsights;
+  onChange: (updater: (current: AiInsights) => AiInsights) => void;
+  onSave: () => void;
+}): React.ReactNode {
+  return (
+    <div className="focused-analysis">
+      <label className="focused-analysis-field">
+        <span>Topic</span>
+        <input
+          className="focused-analysis-input"
+          onChange={(event) =>
+            onChange((current) => ({
+              ...current,
+              pattern: { ...current.pattern, name: event.target.value },
+            }))
+          }
+          value={insights.pattern.name}
+        />
+      </label>
+
+      <div className="focused-methods">
+        {insights.solutionProgression?.map((stage, index) => (
+          <article className="focused-method" key={`${stage.kind}-${String(index)}`}>
+            <div className="focused-method-heading">
+              <strong>{methodLabel(stage.kind)}</strong>
+              <span>
+                {stage.timeComplexity} time · {stage.spaceComplexity} space
+              </span>
+            </div>
+            <label className="focused-analysis-field">
+              <span>Method</span>
+              <input
+                className="focused-analysis-input"
+                onChange={(event) =>
+                  onChange((current) => updateStage(current, index, 'title', event.target.value))
+                }
+                value={stage.title}
+              />
+            </label>
+            <label className="focused-analysis-field">
+              <span>Approach</span>
+              <textarea
+                className="focused-analysis-input focused-analysis-idea"
+                onChange={(event) =>
+                  onChange((current) => updateStage(current, index, 'idea', event.target.value))
+                }
+                value={stage.idea}
+              />
+            </label>
+            <label className="focused-analysis-field">
+              <span>Solution code</span>
+              <textarea
+                className="focused-analysis-input focused-analysis-code"
+                onChange={(event) =>
+                  onChange((current) => updateStage(current, index, 'code', event.target.value))
+                }
+                spellCheck={false}
+                value={stage.code}
+              />
+            </label>
+            <div className="focused-complexity">
+              <label className="focused-analysis-field">
+                <span>Time complexity</span>
+                <input
+                  className="focused-analysis-input"
+                  onChange={(event) =>
+                    onChange((current) =>
+                      updateStage(current, index, 'timeComplexity', event.target.value),
+                    )
+                  }
+                  value={stage.timeComplexity}
+                />
+              </label>
+              <label className="focused-analysis-field">
+                <span>Space complexity</span>
+                <input
+                  className="focused-analysis-input"
+                  onChange={(event) =>
+                    onChange((current) =>
+                      updateStage(current, index, 'spaceComplexity', event.target.value),
+                    )
+                  }
+                  value={stage.spaceComplexity}
+                />
+              </label>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <section className="focused-related" aria-labelledby="similar-questions-title">
+        <h4 id="similar-questions-title">Similar topic-wise questions</h4>
+        {insights.relatedProblems.map((problem, index) => (
+          <div className="focused-related-item" key={`${problem.url}-${String(index)}`}>
+            <input
+              aria-label={`Similar question ${String(index + 1)}`}
+              className="focused-analysis-input"
+              onChange={(event) =>
+                onChange((current) => ({
+                  ...current,
+                  relatedProblems: current.relatedProblems.map((candidate, candidateIndex) =>
+                    candidateIndex === index
+                      ? { ...candidate, title: event.target.value }
+                      : candidate,
+                  ),
+                }))
+              }
+              value={problem.title}
+            />
+            <a href={problem.url} rel="noreferrer" target="_blank">
+              Open ↗
+            </a>
+          </div>
+        ))}
+      </section>
+
+      <div className="focused-analysis-save">
+        <Button onClick={onSave} variant="secondary">
+          Save edits
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type SolutionStage = NonNullable<AiInsights['solutionProgression']>[number];
+
+function updateStage(
+  insights: AiInsights,
+  index: number,
+  field: 'title' | 'idea' | 'code' | 'timeComplexity' | 'spaceComplexity',
+  value: string,
+): AiInsights {
+  if (insights.solutionProgression === undefined) return insights;
+  return {
+    ...insights,
+    solutionProgression: insights.solutionProgression.map((stage, stageIndex) =>
+      stageIndex === index ? { ...stage, [field]: value } : stage,
+    ),
+  };
+}
+
+function methodLabel(kind: SolutionStage['kind']): string {
+  return {
+    'brute-force': 'Brute Force',
+    improved: 'Optimal',
+    optimal: 'Most Optimal',
+  }[kind];
 }
 
 function AnalysisStatus({ status }: { status?: ProblemAnalysisRecord['status'] }): React.ReactNode {
