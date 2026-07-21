@@ -590,6 +590,17 @@ button {
   transform: translateY(-1px);
 }
 
+.dashboard-review-actions .dashboard-remove-action {
+  border-color: color-mix(in srgb, var(--color-destructive) 45%, var(--color-border));
+  color: var(--color-destructive);
+}
+
+.dashboard-review-actions .dashboard-remove-action:hover {
+  border-color: var(--color-destructive);
+  background: color-mix(in srgb, var(--color-destructive) 12%, var(--color-surface));
+  color: var(--color-destructive);
+}
+
 .dashboard-empty-orb {
   border-color: #e6b4c7;
   background: linear-gradient(145deg, #ffd4df, #c8bcff);

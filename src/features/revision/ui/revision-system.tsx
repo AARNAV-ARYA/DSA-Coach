@@ -26,6 +26,7 @@ export function RevisionSystem(): React.ReactNode {
   const snoozeProblem = useRevisionStore((state) => state.snoozeProblem);
   const completeProblem = useRevisionStore((state) => state.completeProblem);
   const skipProblem = useRevisionStore((state) => state.skipProblem);
+  const removeProblem = useRevisionStore((state) => state.removeProblem);
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState<DifficultyFilter>('all');
   const [outcome, setOutcome] = useState<'all' | RevisionOutcome>('all');
@@ -335,6 +336,7 @@ export function RevisionSystem(): React.ReactNode {
                   ) : (
                     <ProblemList
                       onComplete={completeReview}
+                      onRemove={(id) => void removeProblem(id)}
                       onSkip={(id) => void skipProblem(id)}
                       onSnooze={(id) => void snoozeProblem(id)}
                       problems={todaysReviews}
@@ -351,7 +353,11 @@ export function RevisionSystem(): React.ReactNode {
                   {upcomingReviews.length === 0 ? (
                     <EmptyState message="No future reviews scheduled yet." />
                   ) : (
-                    <ProblemList problems={upcomingReviews} compact />
+                    <ProblemList
+                      onRemove={(id) => void removeProblem(id)}
+                      problems={upcomingReviews}
+                      compact
+                    />
                   )}
                 </SectionCard>
               </div>
@@ -409,7 +415,12 @@ export function RevisionSystem(): React.ReactNode {
                   {recentProblems.length === 0 ? (
                     <EmptyState message="Captured problems will appear here." />
                   ) : (
-                    <ProblemList problems={recentProblems} compact showAddedDate />
+                    <ProblemList
+                      onRemove={(id) => void removeProblem(id)}
+                      problems={recentProblems}
+                      compact
+                      showAddedDate
+                    />
                   )}
                 </SectionCard>
               </div>
@@ -508,6 +519,7 @@ function FilterSelect({
 function ProblemList({
   compact = false,
   onComplete,
+  onRemove,
   onSkip,
   onSnooze,
   problems,
@@ -516,6 +528,7 @@ function ProblemList({
 }: {
   compact?: boolean;
   onComplete?: (id: string) => void;
+  onRemove?: (id: string) => void;
   onSkip?: (id: string) => void;
   onSnooze?: (id: string) => void;
   problems: RevisionProblem[];
@@ -564,7 +577,7 @@ function ProblemList({
             ) : (
               <div className="dashboard-problem-row">{rowContent}</div>
             )}
-            {showReviewActions && (
+            {(showReviewActions || onRemove !== undefined) && (
               <div className="dashboard-review-actions" aria-label={`Actions for ${problem.title}`}>
                 <button onClick={() => onSnooze?.(problem.id)} type="button">
                   Snooze
@@ -575,6 +588,22 @@ function ProblemList({
                 <button onClick={() => onComplete?.(problem.id)} type="button">
                   Completed
                 </button>
+                {onRemove !== undefined && (
+                  <button
+                    aria-label={`Remove ${problem.title}`}
+                    className="dashboard-remove-action"
+                    onClick={() => {
+                      if (
+                        globalThis.confirm(`Remove “${problem.title}” from your revision library?`)
+                      ) {
+                        onRemove(problem.id);
+                      }
+                    }}
+                    type="button"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             )}
           </li>

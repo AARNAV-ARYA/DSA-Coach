@@ -136,6 +136,13 @@ export function QuickCapture({
     setIsEditing(true);
   }
 
+  function removeExistingProblem(): void {
+    if (existingProblem === undefined) return;
+    if (!globalThis.confirm(`Remove “${existingProblem.title}” from your revision library?`))
+      return;
+    void removeProblem(existingProblem.id);
+  }
+
   function startManualCapture(): void {
     setIsEditing(false);
     setIsManualCapture(true);
@@ -167,7 +174,7 @@ export function QuickCapture({
         onNoteChange={setNote}
         onOpenDashboard={() => void sendExtensionMessage({ type: 'shell.open-dashboard' })}
         onOutcomeChange={setOutcome}
-        onRemove={() => existingProblem && void removeProblem(existingProblem.id)}
+        onRemove={removeExistingProblem}
         onReview={() => existingProblem && void reviewProblemToday(existingProblem.id)}
         onReviewDateChange={setReviewDate}
         onSave={() => void save()}
@@ -215,7 +222,7 @@ export function QuickCapture({
         <AlreadyAdded
           onEdit={startEditing}
           onOpenDashboard={() => void sendExtensionMessage({ type: 'shell.open-dashboard' })}
-          onRemove={() => void removeProblem(existingProblem.id)}
+          onRemove={removeExistingProblem}
           onReview={() => void reviewProblemToday(existingProblem.id)}
           problem={existingProblem}
           source={source}
