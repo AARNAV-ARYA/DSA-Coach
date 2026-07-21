@@ -17,6 +17,18 @@ export type ExtensionMessage =
   | {
       version: typeof MESSAGE_VERSION;
       type: 'capture.active-context.request';
+    }
+  | {
+      version: typeof MESSAGE_VERSION;
+      type: 'review.added';
+      title: string;
+      reviewDate: string;
+    }
+  | {
+      version: typeof MESSAGE_VERSION;
+      type: 'review.completed';
+      title: string;
+      nextReviewDate: string;
     };
 
 export interface ProblemContext {
@@ -40,6 +52,12 @@ export function isExtensionMessage(value: unknown): value is ExtensionMessage {
     (candidate.type === 'shell.open-side-panel' ||
       candidate.type === 'shell.open-dashboard' ||
       candidate.type === 'capture.active-context.request' ||
+      (candidate.type === 'review.added' &&
+        typeof candidate.title === 'string' &&
+        typeof candidate.reviewDate === 'string') ||
+      (candidate.type === 'review.completed' &&
+        typeof candidate.title === 'string' &&
+        typeof candidate.nextReviewDate === 'string') ||
       (candidate.type === 'problem.context.detected' && isProblemContext(candidate.context)))
   );
 }

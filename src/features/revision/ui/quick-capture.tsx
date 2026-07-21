@@ -88,6 +88,7 @@ export function QuickCapture({
   async function save(): Promise<void> {
     const title = source?.title ?? manualTitle.trim();
     if (title === '') return;
+    let addedNewProblem = false;
 
     if (source !== null && existingProblem !== undefined && isEditing) {
       await updateProblem(existingProblem.id, {
@@ -107,11 +108,15 @@ export function QuickCapture({
         ...(source === null ? {} : { source }),
       });
       if (savedProblem === null) return;
+      addedNewProblem = true;
     }
 
     if (source === null) {
       setManualTitle('');
       setIsManualCapture(false);
+    }
+    if (addedNewProblem) {
+      void sendExtensionMessage({ type: 'review.added', title, reviewDate });
     }
     setDidSave(true);
     globalThis.setTimeout(() => setDidSave(false), 2_000);

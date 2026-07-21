@@ -85,6 +85,15 @@ chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) =>
     );
     return true;
   }
+
+  if (message.type === 'review.added') {
+    void notifyReviewAdded(message.title, message.reviewDate);
+    return;
+  }
+
+  if (message.type === 'review.completed') {
+    void notifyReviewCompleted(message.title, message.nextReviewDate);
+  }
 });
 
 async function persistContext(tabId: number, context: ProblemContext): Promise<void> {
@@ -143,6 +152,52 @@ async function notifyDueReviews(): Promise<void> {
     if (!problems.some((problem) => problem.id === problemId)) delete notified[problemId];
   }
   await chrome.storage.local.set({ [notifiedReviewsStorageKey]: notified });
+}
+
+async function notifyReviewAdded(title: string, reviewDate: string): Promise<void> {
+  await createCelebrationNotification(
+    'review-added',
+    'Question added ✨',
+    `${title} is now in your revision library.`,
+    `Next review: ${formatNotificationDate(reviewDate)} · Future you says thanks!`,
+  );
+}
+
+async function notifyReviewCompleted(title: string, nextReviewDate: string): Promise<void> {
+  await createCelebrationNotification(
+    'review-completed',
+    'Revision complete 🎉',
+    `You finished ${title}. Great work!`,
+    `Next review: ${formatNotificationDate(nextReviewDate)} · Keep the momentum going.`,
+  );
+}
+
+async function createCelebrationNotification(
+  kind: string,
+  title: string,
+  message: string,
+  contextMessage: string,
+): Promise<void> {
+  try {
+    await chrome.notifications.create(`dsa-coach.${kind}.${Date.now()}`, {
+      type: 'basic',
+      iconUrl: 'assets/dsa-coach-mascot.png',
+      title,
+      message,
+      contextMessage,
+      priority: 1,
+    });
+  } catch {
+    // Notifications can be unavailable in restricted browser profiles.
+  }
+}
+
+function formatNotificationDate(value: string): string {
+  const [year, month, day] = value.split('-').map(Number);
+  if (year === undefined || month === undefined || day === undefined) return value;
+  return new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' }).format(
+    new Date(year, month - 1, day),
+  );
 }
 
 async function openReview(problemId: string): Promise<void> {

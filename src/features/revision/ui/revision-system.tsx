@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
   revisionStorageKey,
+  reviewDateFromToday,
   today,
   useRevisionStore,
 } from '@/features/revision/model/revision-store';
@@ -11,6 +12,7 @@ import {
   type RevisionProblem,
 } from '@/features/revision/model/revision-types';
 import { cn } from '@/shared/lib/cn';
+import { sendExtensionMessage } from '@/shared/lib/messaging/client';
 
 type DifficultyFilter = 'all' | 'Easy' | 'Medium' | 'Hard' | 'Unclassified';
 type DateFilter = 'all' | 'today' | 'upcoming';
@@ -90,6 +92,20 @@ export function RevisionSystem(): React.ReactNode {
     const x = ((event.clientY - bounds.top) / bounds.height - 0.5) * -2;
     const y = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
     setTilt({ x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) });
+  }
+
+  function completeReview(problemId: string): void {
+    const problem = problems.find((item) => item.id === problemId);
+    if (problem === undefined) return;
+
+    const nextReviewDate = reviewDateFromToday(30);
+    void completeProblem(problemId).then(() =>
+      sendExtensionMessage({
+        type: 'review.completed',
+        title: problem.title,
+        nextReviewDate,
+      }),
+    );
   }
 
   const dueToday = problems.filter((problem) => problem.reviewDate <= currentDate).length;
@@ -318,7 +334,7 @@ export function RevisionSystem(): React.ReactNode {
                     <EmptyState message="Nothing is due today. Your review queue is clear." />
                   ) : (
                     <ProblemList
-                      onComplete={(id) => void completeProblem(id)}
+                      onComplete={completeReview}
                       onSkip={(id) => void skipProblem(id)}
                       onSnooze={(id) => void snoozeProblem(id)}
                       problems={todaysReviews}
