@@ -234,11 +234,12 @@ At 100,000 users, favor stateless API replicas, managed PostgreSQL with read rep
 
 ## 13. Repository structure
 
-The extension remains one workspace. The public product website is a second, fully static deployable
-under `website/` with its own dependency graph and build output. This boundary prevents site
-dependencies, hosting configuration, or presentation code from entering the extension bundle while
-avoiding premature shared packages. Extract packages only when a real second runtime consumer needs
-the same domain code.
+The extension remains one workspace. The web application is a second deployable under `website/`
+with its own dependency graph and build output. It composes the existing web-safe dashboard and
+revision modules through the `@` source alias, and relies on the storage abstraction's browser
+`localStorage` fallback when Chrome extension APIs are unavailable. This boundary prevents website
+dependencies and hosting configuration from entering the extension bundle while keeping the user
+experience consistent.
 
 ```text
 DSA-Coach/
@@ -251,9 +252,9 @@ DSA-Coach/
 │   ├── features/                   # Self-contained product capabilities (theme first)
 │   ├── shared/                     # Reusable UI, platform abstractions, contracts
 │   └── styles/                     # Global tokens and Tailwind entry stylesheet
-├── website/                        # Independent static product/engineering website
+├── website/                        # Browser-local DSA Coach web application
 │   ├── public/                     # Website-only static metadata assets
-│   ├── src/                        # Website components, content, and styles
+│   ├── src/                        # Web composition shell and capture flow
 │   ├── netlify.toml                # Netlify static deployment configuration
 │   └── vercel.json                 # Vercel static deployment configuration
 ├── dist/                           # Generated unpacked extension; never committed
@@ -267,10 +268,10 @@ DSA-Coach/
 ```
 
 **Future extraction rule:** introduce `packages/contracts`, `packages/domain`, and deployable
-`apps/api` / `workers` only when those modules have a second runtime consumer. The public website
-must use presentation-safe project facts rather than importing extension code. `src/shared/lib/messaging`
-and future pure domain logic are intentionally shaped so a later move remains mechanical, not
-architectural.
+`apps/api` / `workers` only when independent evolution or another runtime makes the current source
+alias impractical. The web application must import only browser-safe modules; privileged extension
+messaging and automatic LeetCode capture remain extension-only. Shared contracts and pure domain
+logic are intentionally shaped so a later package extraction remains mechanical, not architectural.
 
 ## 14. Decisions deferred until approval
 

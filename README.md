@@ -37,11 +37,13 @@ npm run build:firefox    # create and validate dist-firefox/
 
 The extension core is offline-ready because its code, UI assets, revision data, notes, and generated analyses are packaged or stored locally. New AI generation requires the separately running API. The loopback API is a development-only boundary and must be replaced with an authenticated HTTPS deployment before advertising AI in a public store release.
 
-## Public website
+## Web application
 
-The product and engineering website is an independent static React application in `website/`. Its
-dependencies, build output, and hosting configuration are isolated from the extension so a website
-release cannot change browser permissions or extension packaging.
+The browser-local DSA Coach workspace lives in `website/`. It reuses the extension's dashboard,
+review, analytics, and analysis UI while keeping its dependencies, build output, and hosting
+configuration isolated from extension packaging. Questions added on the website are stored in that
+browser's local storage; extension storage remains separate until an explicit sync capability is
+implemented.
 
 ```bash
 cd website
@@ -50,7 +52,7 @@ npm run check
 npm run build
 ```
 
-See [website/README.md](website/README.md) for local preview and Vercel or Netlify deployment
+See [website/README.md](website/README.md) for local preview, storage boundaries, and deployment
 instructions.
 
 ## Source-of-truth documents

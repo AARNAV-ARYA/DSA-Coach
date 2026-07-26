@@ -16,16 +16,21 @@
   },
   "dependencies": {
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
+    "@tailwindcss/vite": "^4.2.2",
     "@testing-library/react": "^16.3.2",
+    "@types/chrome": "^0.1.38",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "jsdom": "^29.0.1",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.0",
     "vitest": "^4.1.10",

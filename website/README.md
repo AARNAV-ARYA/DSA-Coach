@@ -1,7 +1,12 @@
-# DSA Coach website
+# DSA Coach web application
 
-The portfolio and product landing page lives beside the browser extension without sharing its
-runtime, permissions, or build output.
+The extension experience is available as a web application beside the browser extension. It reuses
+the extension dashboard, revision store, analysis workspace, and design system without changing the
+extension build or permissions.
+
+The web application persists its own workspace in browser-local storage. A normal website cannot
+read LeetCode tabs or the extension's private Chrome storage, so automatic detection and shared
+cross-device state remain extension or future authenticated-sync capabilities.
 
 ## Local development
 
