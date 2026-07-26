@@ -37,6 +37,22 @@ npm run build:firefox    # create and validate dist-firefox/
 
 The extension core is offline-ready because its code, UI assets, revision data, notes, and generated analyses are packaged or stored locally. New AI generation requires the separately running API. The loopback API is a development-only boundary and must be replaced with an authenticated HTTPS deployment before advertising AI in a public store release.
 
+## Public website
+
+The product and engineering website is an independent static React application in `website/`. Its
+dependencies, build output, and hosting configuration are isolated from the extension so a website
+release cannot change browser permissions or extension packaging.
+
+```bash
+cd website
+npm install
+npm run check
+npm run build
+```
+
+See [website/README.md](website/README.md) for local preview and Vercel or Netlify deployment
+instructions.
+
 ## Source-of-truth documents
 
 - [Product specification](PROJECT_SPEC.md) — users, scope, workflows, and UX bar.

@@ -4,7 +4,10 @@ dist-server/
 dist-firefox/
 release/
 .vite/
+.wrangler/
 coverage/
+.vercel/
+.netlify/
 .env
 .env.*
 !.env.example

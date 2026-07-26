@@ -234,7 +234,11 @@ At 100,000 users, favor stateless API replicas, managed PostgreSQL with read rep
 
 ## 13. Repository structure
 
-Phase 1 uses one extension workspace. Splitting into a monorepo before an API, worker, or second deployable exists would add build and release complexity without creating useful boundaries. The folder layout already enforces the important boundaries; extract packages only when a second consumer exists.
+The extension remains one workspace. The public product website is a second, fully static deployable
+under `website/` with its own dependency graph and build output. This boundary prevents site
+dependencies, hosting configuration, or presentation code from entering the extension bundle while
+avoiding premature shared packages. Extract packages only when a real second runtime consumer needs
+the same domain code.
 
 ```text
 DSA-Coach/
@@ -247,6 +251,11 @@ DSA-Coach/
 │   ├── features/                   # Self-contained product capabilities (theme first)
 │   ├── shared/                     # Reusable UI, platform abstractions, contracts
 │   └── styles/                     # Global tokens and Tailwind entry stylesheet
+├── website/                        # Independent static product/engineering website
+│   ├── public/                     # Website-only static metadata assets
+│   ├── src/                        # Website components, content, and styles
+│   ├── netlify.toml                # Netlify static deployment configuration
+│   └── vercel.json                 # Vercel static deployment configuration
 ├── dist/                           # Generated unpacked extension; never committed
 ├── vite.config.ts                  # Multi-entry build and absolute-import alias
 ├── tsconfig.app.json               # Strict browser/extension TypeScript config
@@ -257,7 +266,11 @@ DSA-Coach/
 └── README.md
 ```
 
-**Future extraction rule:** introduce `packages/contracts`, `packages/domain`, and deployable `apps/api` / `workers` only when those modules have a second consumer. `src/shared/lib/messaging` and future pure domain logic are intentionally shaped so the move is mechanical, not architectural.
+**Future extraction rule:** introduce `packages/contracts`, `packages/domain`, and deployable
+`apps/api` / `workers` only when those modules have a second runtime consumer. The public website
+must use presentation-safe project facts rather than importing extension code. `src/shared/lib/messaging`
+and future pure domain logic are intentionally shaped so a later move remains mechanical, not
+architectural.
 
 ## 14. Decisions deferred until approval
 

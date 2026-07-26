@@ -14,7 +14,7 @@
     "build:extension": "vite build",
     "build:api": "tsc -p tsconfig.server.build.json",
     "start:api": "node --env-file=.env dist-server/server/index.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude \"website/**\"",
     "test:production": "npm run build:extension && node scripts/validate-extension.mjs dist",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.server.json --noEmit",
     "lint": "eslint .",
